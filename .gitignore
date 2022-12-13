@@ -1,3 +1,6 @@
+# Unnecessary Folders
+build/
+
 # Mac cache
 .DS_Store
 

@@ -1,1 +1,1 @@
-add_subdirectory(metal_glfw_imgui_demo)
+add_subdirectory(metal_demo)

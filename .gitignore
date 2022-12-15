@@ -1,8 +1,9 @@
 # Unnecessary Folders
 build/
 
-# Mac cache
+# Caches
 .DS_Store
+.vscode
 
 # Prerequisites
 *.d

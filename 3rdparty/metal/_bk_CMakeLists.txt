@@ -1,0 +1,5 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Foundation 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/Metal 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/MetalKit 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/QuartzCore 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/AppKit)

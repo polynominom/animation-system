@@ -44,3 +44,5 @@ target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
 target_link_libraries(imgui PRIVATE glfw ${OPENGL_LIBRARY})
 
 set_target_properties(imgui PROPERTIES FOLDER "Dependencies")
+
+

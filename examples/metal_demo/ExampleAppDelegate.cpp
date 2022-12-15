@@ -1,3 +1,9 @@
+#include <cassert>
+#define NS_PRIVATE_IMPLEMENTATION
+#define MTL_PRIVATE_IMPLEMENTATION
+#define MTK_PRIVATE_IMPLEMENTATION
+#define CA_PRIVATE_IMPLEMENTATION
+
 #include <ExampleAppDelegate.hpp>
 
 namespace AnimationSystem
@@ -75,6 +81,8 @@ namespace AnimationSystem
 
         _pMtkView = MTK::View::alloc()->init(frame, _pDevice);
         _pMtkView->setColorPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+
+        // red
         _pMtkView->setClearColor(MTL::ClearColor::Make(1.0, 0.0, 0.0, 1.0));
 
         _pViewDelegate = new ExampleViewDelegate(_pDevice);

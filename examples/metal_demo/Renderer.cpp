@@ -12,6 +12,8 @@ namespace AnimationSystem
 
     Renderer::~Renderer()
     {
+        _pShaderLibrary->release();
+        _pArgBuffer->release();
         _pVertexPositionBuffer->release();
         _pVertexColorBuffer->release();
         _pPSO->release();
@@ -28,8 +30,11 @@ namespace AnimationSystem
         MTL::RenderCommandEncoder *pEnc = pCmd->renderCommandEncoder(pRpd);
 
         pEnc->setRenderPipelineState(_pPSO);
-        pEnc->setVertexBuffer(_pVertexPositionBuffer, 0, 0);
-        pEnc->setVertexBuffer(_pVertexColorBuffer, 0, 1);
+
+        pEnc->setVertexBuffer(_pArgBuffer, 0, 0);
+        pEnc->useResource(_pVertexPositionBuffer, MTL::ResourceUsageRead);
+        pEnc->useResource(_pVertexColorBuffer, MTL::ResourceUsageRead);
+
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
 
         pEnc->endEncoding();
@@ -80,7 +85,7 @@ namespace AnimationSystem
         pVertexFn->release();
         pFragFn->release();
         pDesc->release();
-        pLibrary->release();
+        _pShaderLibrary = pLibrary;
     }
 
     void Renderer::buildBuffers()
@@ -111,5 +116,23 @@ namespace AnimationSystem
 
         _pVertexPositionBuffer->didModifyRange(NS::Range::Make(0, _pVertexPositionBuffer->length()));
         _pVertexColorBuffer->didModifyRange(NS::Range::Make(0, _pVertexColorBuffer->length()));
+
+        using NS::StringEncoding::UTF8StringEncoding;
+        assert(_pShaderLibrary);
+
+        // Create new buffer
+        MTL::Function *pVertexFn = _pShaderLibrary->newFunction(NS::String::string("vertexMain", UTF8StringEncoding));
+        MTL::ArgumentEncoder *pArgEncoder = pVertexFn->newArgumentEncoder(0);
+        _pArgBuffer = _pDevice->newBuffer(pArgEncoder->encodedLength(), MTL::ResourceStorageModeManaged);
+
+        // set arg buffer
+        pArgEncoder->setArgumentBuffer(_pArgBuffer, 0);
+        pArgEncoder->setBuffer(_pVertexPositionBuffer, 0, 0);
+        pArgEncoder->setBuffer(_pVertexColorBuffer, 0, 1);
+        _pArgBuffer->didModifyRange(NS::Range::Make(0, _pArgBuffer->length()));
+
+        // no leaks!
+        pVertexFn->release();
+        pArgEncoder->release();
     }
 }

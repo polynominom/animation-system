@@ -1,7 +1,8 @@
 #include <iostream>
 #include <AppKit/AppKit.hpp>
 #include <MetalKit/MetalKit.hpp>
-#include <cassert>
+#include <Metal/Metal.hpp>
+#include <simd/simd.h>
 
 namespace AnimationSystem
 {
@@ -10,10 +11,16 @@ namespace AnimationSystem
     public:
         Renderer(MTL::Device *pDevice);
         ~Renderer();
+        void buildShaders();
+        void buildBuffers();
         void draw(MTK::View *pView);
 
     private:
         MTL::Device *_pDevice;
         MTL::CommandQueue *_pCommandQueue;
+
+        MTL::RenderPipelineState *_pPSO;
+        MTL::Buffer *_pVertexPositionBuffer;
+        MTL::Buffer *_pVertexColorBuffer;
     };
 }

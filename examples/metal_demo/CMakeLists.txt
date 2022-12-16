@@ -6,6 +6,8 @@ FILE(GLOB METALKIT_HEADERS ${METAL_DIR}/MetalKit/*.hpp)
 FILE(GLOB APPKIT_HEADERS ${METAL_DIR}/AppKit/*.hpp)
 FILE(GLOB QUARTZCORE_HEADERS ${METAL_DIR}/QuartzCore/*.hpp)
 
+FILE(COPY ${SHADER_RESOURCES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+
 # Add sources
 set(src 
     ${CMAKE_CURRENT_SOURCE_DIR}/App.cpp
@@ -33,4 +35,4 @@ add_executable(metal_example ${src} ${headers})
 # Glfw compile definition
 target_compile_definitions(metal_example PRIVATE GLFW_INCLUDE_NONE)
 # Link 3rdparty libraries
-target_link_libraries(metal_example ${APPLE_FRAMEWORK_DEPS})
+target_link_libraries(metal_example ${APPLE_FRAMEWORK_DEPS} AnimationSystemCore)

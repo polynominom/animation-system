@@ -4,6 +4,8 @@ build/
 # Caches
 .DS_Store
 .vscode/
+__pycache__/
+*.pyc
 
 # Prerequisites
 *.d

@@ -8,6 +8,11 @@
 
 namespace AnimationSystem
 {
+    struct FrameData
+    {
+        float angle;
+    };
+
     class Renderer
     {
     public:
@@ -15,6 +20,7 @@ namespace AnimationSystem
         ~Renderer();
         void buildShaders();
         void buildBuffers();
+        void buildFrameData();
         void draw(MTK::View *pView);
 
     private:
@@ -25,5 +31,11 @@ namespace AnimationSystem
         MTL::Buffer *_pArgBuffer;
         MTL::Buffer *_pVertexPositionBuffer;
         MTL::Buffer *_pVertexColorBuffer;
+
+        MTL::Buffer *_pFrameData[3];
+        float _angle;
+        int _frame;
+        dispatch_semaphore_t _semaphore;
+        static const int kMaxFrames{3};
     };
 }

@@ -8,6 +8,9 @@ namespace AnimationSystem
         _pCommandQueue = _pDevice->newCommandQueue();
         buildShaders();
         buildBuffers();
+        buildFrameData();
+
+        _semaphore = dispatch_semaphore_create(Renderer::kMaxFrames);
     }
 
     Renderer::~Renderer()
@@ -16,6 +19,12 @@ namespace AnimationSystem
         _pArgBuffer->release();
         _pVertexPositionBuffer->release();
         _pVertexColorBuffer->release();
+
+        for (int i = 0; i < Renderer::kMaxFrames; ++i)
+        {
+            _pFrameData[i]->release();
+        }
+
         _pPSO->release();
         _pCommandQueue->release();
         _pDevice->release();
@@ -25,7 +34,22 @@ namespace AnimationSystem
     {
         NS::AutoreleasePool *pPool = NS::AutoreleasePool::alloc()->init();
 
+        _frame = (_frame + 1) % Renderer::kMaxFrames;
+        MTL::Buffer *pFrameDataBuffer = _pFrameData[_frame];
+
         MTL::CommandBuffer *pCmd = _pCommandQueue->commandBuffer();
+
+        dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
+        Renderer *pRenderer = this;
+
+        // complete handler
+        std::function<void(MTL::CommandBuffer *)> drawCallback = [pRenderer](MTL::CommandBuffer *pCmd)
+        { dispatch_semaphore_signal(pRenderer->_semaphore); };
+        pCmd->addCompletedHandler(drawCallback);
+
+        reinterpret_cast<FrameData *>(pFrameDataBuffer->contents())->angle = _angle += 0.01f;
+        pFrameDataBuffer->didModifyRange(NS::Range::Make(0, sizeof(FrameData)));
+
         MTL::RenderPassDescriptor *pRpd = pView->currentRenderPassDescriptor();
         MTL::RenderCommandEncoder *pEnc = pCmd->renderCommandEncoder(pRpd);
 
@@ -35,6 +59,7 @@ namespace AnimationSystem
         pEnc->useResource(_pVertexPositionBuffer, MTL::ResourceUsageRead);
         pEnc->useResource(_pVertexColorBuffer, MTL::ResourceUsageRead);
 
+        pEnc->setVertexBuffer(pFrameDataBuffer, 0, 1);
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
 
         pEnc->endEncoding();
@@ -134,5 +159,13 @@ namespace AnimationSystem
         // no leaks!
         pVertexFn->release();
         pArgEncoder->release();
+    }
+
+    void Renderer::buildFrameData()
+    {
+        for (int i = 0; i < Renderer::kMaxFrames; ++i)
+        {
+            _pFrameData[i] = _pDevice->newBuffer(sizeof(FrameData), MTL::ResourceStorageModeManaged);
+        }
     }
 }

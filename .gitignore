@@ -3,7 +3,7 @@ build/
 
 # Caches
 .DS_Store
-.vscode
+.vscode/
 
 # Prerequisites
 *.d

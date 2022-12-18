@@ -1,14 +1,20 @@
 #include <Renderer.hpp>
 #include <AnimationSystem.h>
+#include "Math.hpp"
 
 namespace AnimationSystem
 {
+    namespace
+    {
+        // PRIVATE FREE FUNCTIONS
+    }
+
     Renderer::Renderer(MTL::Device *device) : _pDevice(device->retain())
     {
         _pCommandQueue = _pDevice->newCommandQueue();
         buildShaders();
+        buildDepthStencilStates();
         buildBuffers();
-        buildFrameData();
 
         _semaphore = dispatch_semaphore_create(Renderer::kMaxFrames);
     }
@@ -16,15 +22,16 @@ namespace AnimationSystem
     Renderer::~Renderer()
     {
         _pShaderLibrary->release();
-        _pArgBuffer->release();
-        _pVertexPositionBuffer->release();
-        _pVertexColorBuffer->release();
+        _pDepthStencilState->release();
+        _pVertexDataBuffer->release();
 
         for (int i = 0; i < Renderer::kMaxFrames; ++i)
         {
-            _pFrameData[i]->release();
+            _pInstanceDataBuffer[i]->release();
+            _pCameraDataBuffer[i]->release();
         }
 
+        _pIndexBuffer->release();
         _pPSO->release();
         _pCommandQueue->release();
         _pDevice->release();
@@ -32,35 +39,86 @@ namespace AnimationSystem
 
     void Renderer::draw(MTK::View *pView)
     {
+        using simd::float3;
+        using simd::float4;
+        using simd::float4x4;
+
         NS::AutoreleasePool *pPool = NS::AutoreleasePool::alloc()->init();
 
         _frame = (_frame + 1) % Renderer::kMaxFrames;
-        MTL::Buffer *pFrameDataBuffer = _pFrameData[_frame];
+        MTL::Buffer *pInstanceDataBuffer = _pInstanceDataBuffer[_frame];
 
         MTL::CommandBuffer *pCmd = _pCommandQueue->commandBuffer();
-
         dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
         Renderer *pRenderer = this;
-
         // complete handler
         std::function<void(MTL::CommandBuffer *)> drawCallback = [pRenderer](MTL::CommandBuffer *pCmd)
         { dispatch_semaphore_signal(pRenderer->_semaphore); };
         pCmd->addCompletedHandler(drawCallback);
 
-        reinterpret_cast<FrameData *>(pFrameDataBuffer->contents())->angle = _angle += 0.01f;
-        pFrameDataBuffer->didModifyRange(NS::Range::Make(0, sizeof(FrameData)));
+        _angle += 0.01f;
+
+        const float scl = 0.1f;
+        ShaderTypes::InstanceData *pInstanceData = reinterpret_cast<ShaderTypes::InstanceData *>(pInstanceDataBuffer->contents());
+
+        float3 objectPosition = {0.f, 0.f, -5.f};
+
+        // Update instance positions:
+
+        float4x4 rt = Math::translate(objectPosition);
+        float4x4 rr = Math::rotateY(-_angle);
+        float4x4 rtInv = Math::translate({-objectPosition.x, -objectPosition.y, -objectPosition.z});
+        float4x4 fullObjectRot = rt * rr * rtInv;
+
+        for (size_t i = 0; i < kNumInstances; ++i)
+        {
+            float iDivNumInstances = i / (float)kNumInstances;
+            float xoff = (iDivNumInstances * 2.0f - 1.0f) + (1.f / kNumInstances);
+            float yoff = sin((iDivNumInstances + _angle) * 2.0f * M_PI);
+
+            // Use the tiny math library to apply a 3D transformation to the instance.
+            float4x4 scale = Math::scale((float3){scl, scl, scl});
+            float4x4 zrot = Math::rotateZ(_angle);
+            float4x4 yrot = Math::rotateY(_angle);
+            float4x4 translate = Math::translate(Math::add(objectPosition, {xoff, yoff, 0.f}));
+
+            pInstanceData[i].instanceTransform = fullObjectRot * translate * yrot * zrot * scale;
+
+            float r = iDivNumInstances;
+            float g = 1.0f - r;
+            float b = sinf(M_PI * 2.0f * iDivNumInstances);
+            pInstanceData[i].instanceColor = (float4){r, g, b, 1.0f};
+        }
+        pInstanceDataBuffer->didModifyRange(NS::Range::Make(0, pInstanceDataBuffer->length()));
+
+        // Update camera state:
+
+        MTL::Buffer *pCameraDataBuffer = _pCameraDataBuffer[_frame];
+        ShaderTypes::CameraData *pCameraData = reinterpret_cast<ShaderTypes::CameraData *>(pCameraDataBuffer->contents());
+        pCameraData->perspectiveTransform = Math::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
+        pCameraData->worldTransform = Math::makeIdentity();
+        pCameraDataBuffer->didModifyRange(NS::Range::Make(0, sizeof(ShaderTypes::CameraData)));
+
+        // Begin render pass:
 
         MTL::RenderPassDescriptor *pRpd = pView->currentRenderPassDescriptor();
         MTL::RenderCommandEncoder *pEnc = pCmd->renderCommandEncoder(pRpd);
 
         pEnc->setRenderPipelineState(_pPSO);
+        pEnc->setDepthStencilState(_pDepthStencilState);
 
-        pEnc->setVertexBuffer(_pArgBuffer, 0, 0);
-        pEnc->useResource(_pVertexPositionBuffer, MTL::ResourceUsageRead);
-        pEnc->useResource(_pVertexColorBuffer, MTL::ResourceUsageRead);
+        pEnc->setVertexBuffer(_pVertexDataBuffer, /* offset */ 0, /* index */ 0);
+        pEnc->setVertexBuffer(pInstanceDataBuffer, /* offset */ 0, /* index */ 1);
+        pEnc->setVertexBuffer(pCameraDataBuffer, /* offset */ 0, /* index */ 2);
 
-        pEnc->setVertexBuffer(pFrameDataBuffer, 0, 1);
-        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
+        pEnc->setCullMode(MTL::CullModeBack);
+        pEnc->setFrontFacingWinding(MTL::Winding::WindingCounterClockwise);
+
+        pEnc->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle,
+                                    6 * 6, MTL::IndexType::IndexTypeUInt16,
+                                    _pIndexBuffer,
+                                    0,
+                                    kNumInstances);
 
         pEnc->endEncoding();
         pCmd->presentDrawable(pView->currentDrawable());
@@ -99,6 +157,7 @@ namespace AnimationSystem
         pDesc->setVertexFunction(pVertexFn);
         pDesc->setFragmentFunction(pFragFn);
         pDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+        pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth16Unorm);
 
         _pPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pPSO)
@@ -113,59 +172,69 @@ namespace AnimationSystem
         _pShaderLibrary = pLibrary;
     }
 
-    void Renderer::buildBuffers()
+    void Renderer::buildDepthStencilStates()
     {
-        const size_t NumVertices = 3;
+        MTL::DepthStencilDescriptor *pDsDesc = MTL::DepthStencilDescriptor::alloc()->init();
+        pDsDesc->setDepthCompareFunction(MTL::CompareFunction::CompareFunctionLess);
+        pDsDesc->setDepthWriteEnabled(true);
 
-        simd::float3 positions[NumVertices] = {
-            {-0.8f, 0.8f, 0.0f},
-            {0.0f, -0.8f, 0.0f},
-            {+0.8f, 0.8f, 0.0f}};
+        _pDepthStencilState = _pDevice->newDepthStencilState(pDsDesc);
 
-        simd::float3 colors[NumVertices] = {
-            {1.0, 0.3f, 0.2f},
-            {0.8f, 1.0, 0.0f},
-            {0.8f, 0.0f, 1.0}};
-
-        const size_t positionsDataSize = NumVertices * sizeof(simd::float3);
-        const size_t colorDataSize = NumVertices * sizeof(simd::float3);
-
-        MTL::Buffer *pVertexPositionBuffer = _pDevice->newBuffer(positionsDataSize, MTL::ResourceStorageModeManaged);
-        MTL::Buffer *pVertexColorBuffer = _pDevice->newBuffer(colorDataSize, MTL::ResourceStorageModeManaged);
-
-        _pVertexPositionBuffer = pVertexPositionBuffer;
-        _pVertexColorBuffer = pVertexColorBuffer;
-
-        memcpy(_pVertexPositionBuffer->contents(), positions, positionsDataSize);
-        memcpy(_pVertexColorBuffer->contents(), colors, colorDataSize);
-
-        _pVertexPositionBuffer->didModifyRange(NS::Range::Make(0, _pVertexPositionBuffer->length()));
-        _pVertexColorBuffer->didModifyRange(NS::Range::Make(0, _pVertexColorBuffer->length()));
-
-        using NS::StringEncoding::UTF8StringEncoding;
-        assert(_pShaderLibrary);
-
-        // Create new buffer
-        MTL::Function *pVertexFn = _pShaderLibrary->newFunction(NS::String::string("vertexMain", UTF8StringEncoding));
-        MTL::ArgumentEncoder *pArgEncoder = pVertexFn->newArgumentEncoder(0);
-        _pArgBuffer = _pDevice->newBuffer(pArgEncoder->encodedLength(), MTL::ResourceStorageModeManaged);
-
-        // set arg buffer
-        pArgEncoder->setArgumentBuffer(_pArgBuffer, 0);
-        pArgEncoder->setBuffer(_pVertexPositionBuffer, 0, 0);
-        pArgEncoder->setBuffer(_pVertexColorBuffer, 0, 1);
-        _pArgBuffer->didModifyRange(NS::Range::Make(0, _pArgBuffer->length()));
-
-        // no leaks!
-        pVertexFn->release();
-        pArgEncoder->release();
+        pDsDesc->release();
     }
 
-    void Renderer::buildFrameData()
+    void Renderer::buildBuffers()
     {
-        for (int i = 0; i < Renderer::kMaxFrames; ++i)
+        const float s = 0.5f;
+        // cube vertices list
+        simd::float3 verts[]{
+            {-s, -s, +s},
+            {+s, -s, +s},
+            {+s, +s, +s},
+            {-s, +s, +s},
+
+            {-s, -s, -s},
+            {+s, -s, -s},
+            {+s, +s, -s},
+            {-s, +s, -s}};
+
+        // cube face indices
+        uint16_t indices[] = {
+            0, 1, 2, /* front */
+            2, 3, 0,
+
+            1, 7, 6, /* right */
+            6, 2, 1,
+
+            7, 4, 5, /* back */
+            5, 6, 7,
+
+            4, 0, 3, /* left */
+            3, 5, 4,
+
+            3, 2, 6, /* top */
+            6, 5, 3,
+
+            4, 7, 1, /* bottom */
+            1, 0, 4};
+        const size_t vertexDataSize = sizeof(verts);
+        const size_t indexDataSize = sizeof(indices);
+
+        _pVertexDataBuffer = _pDevice->newBuffer(vertexDataSize, MTL::ResourceStorageModeManaged);
+        _pIndexBuffer = _pDevice->newBuffer(indexDataSize, MTL::ResourceStorageModeManaged);
+
+        memcpy(_pVertexDataBuffer->contents(), verts, vertexDataSize);
+        memcpy(_pIndexBuffer->contents(), indices, indexDataSize);
+
+        _pVertexDataBuffer->didModifyRange(NS::Range::Make(0, _pVertexDataBuffer->length()));
+        _pIndexBuffer->didModifyRange(NS::Range::Make(0, _pIndexBuffer->length()));
+
+        const size_t instanceDataSize = kMaxFrames * kNumInstances * sizeof(ShaderTypes::InstanceData);
+        const size_t cameraDataSize = kMaxFrames * sizeof(ShaderTypes::CameraData);
+        for (size_t i = 0; i < kMaxFrames; ++i)
         {
-            _pFrameData[i] = _pDevice->newBuffer(sizeof(FrameData), MTL::ResourceStorageModeManaged);
+            _pInstanceDataBuffer[i] = _pDevice->newBuffer(instanceDataSize, MTL::ResourceStorageModeManaged);
+            _pCameraDataBuffer[i] = _pDevice->newBuffer(cameraDataSize, MTL::ResourceStorageModeManaged);
         }
     }
 }

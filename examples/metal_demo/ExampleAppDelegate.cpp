@@ -81,16 +81,18 @@ namespace AnimationSystem
 
         _pMtkView = MTK::View::alloc()->init(frame, _pDevice);
         _pMtkView->setColorPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+        _pMtkView->setDepthStencilPixelFormat(MTL::PixelFormat::PixelFormatDepth16Unorm);
+        _pMtkView->setClearDepth(1.0f);
 
         // red
-        _pMtkView->setClearColor(MTL::ClearColor::Make(1.0, 0.0, 0.0, 1.0));
+        _pMtkView->setClearColor(MTL::ClearColor::Make(0.10, 0.10, 0.10, 1.0));
 
         _pViewDelegate = new ExampleViewDelegate(_pDevice);
         _pMtkView->setDelegate(_pViewDelegate);
 
         _pWindow->setContentView(_pMtkView);
 
-        _pWindow->setTitle(NS::String::string("window example", NS::StringEncoding::UTF8StringEncoding));
+        _pWindow->setTitle(NS::String::string("Example Window", NS::StringEncoding::UTF8StringEncoding));
 
         _pWindow->makeKeyAndOrderFront(nullptr);
 

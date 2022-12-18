@@ -17,10 +17,9 @@ set(src
     )
 
 # Add metal headers
+FILE(GLOB EXAMPLE_HEDAERS ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 set(headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ExampleViewDelegate.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ExampleAppDelegate.hpp
+    ${EXAMPLE_HEDAERS}
     ${FOUNDATION_HEADERS}
     ${METALKIT_HEADERS}
     ${METAL_HEADERS}

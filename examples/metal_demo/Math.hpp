@@ -77,5 +77,10 @@ namespace AnimationSystem
                 (float4){0, 0, v.z, 0},
                 (float4){0, 0, 0, 1});
         }
+
+        simd::float3x3 discardTranslation(const simd::float4x4 &m)
+        {
+            return simd_matrix(m.columns[0].xyz, m.columns[1].xyz, m.columns[2].xyz);
+        }
     }
 } // namespace AnimationSystem

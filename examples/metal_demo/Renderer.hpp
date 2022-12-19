@@ -9,11 +9,10 @@
 namespace AnimationSystem
 {
     static constexpr size_t kMaxFrames = 3;
-    static constexpr size_t kNumInstances = 32;
-    struct FrameData
-    {
-        float angle;
-    };
+    static constexpr size_t kInstanceDepth = 10;
+    static constexpr size_t kInstanceColumns = 10;
+    static constexpr size_t kInstanceRows = 10;
+    static constexpr size_t kNumInstances = (kInstanceRows * kInstanceColumns * kInstanceDepth);
 
     class Renderer
     {
@@ -23,7 +22,6 @@ namespace AnimationSystem
         void buildShaders();
         void buildBuffers();
         void buildDepthStencilStates();
-        void buildFrameData();
         void draw(MTK::View *pView);
 
     private:

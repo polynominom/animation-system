@@ -69,7 +69,7 @@ namespace AnimationSystem
 
     void ExampleAppDelegate::applicationDidFinishLaunching(NS::Notification *pNotification)
     {
-        CGRect frame = (CGRect){{100.0, 100.0}, {512.0, 512.0}};
+        CGRect frame = (CGRect){{100.0, 100.0}, {1024.0, 1024.0}};
 
         _pWindow = NS::Window::alloc()->init(
             frame,

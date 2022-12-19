@@ -1,4 +1,6 @@
-include_directories(${METAL_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${METAL_DIR} 
+                    ${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/basic_shapes)
 
 FILE(GLOB FOUNDATION_HEADERS ${METAL_DIR}/Foundation/*.hpp)
 FILE(GLOB METAL_HEADERS ${METAL_DIR}/Metal/*.hpp)
@@ -18,8 +20,10 @@ set(src
 
 # Add metal headers
 FILE(GLOB EXAMPLE_HEDAERS ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
+FILE(GLOB SHAPE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/basic_shapes/*.hpp)
 set(headers
     ${EXAMPLE_HEDAERS}
+    ${SHAPE_HEADERS}
     ${FOUNDATION_HEADERS}
     ${METALKIT_HEADERS}
     ${METAL_HEADERS}

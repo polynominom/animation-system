@@ -1,6 +1,7 @@
 #include <Renderer.hpp>
 #include <AnimationSystem.h>
 #include "Math.hpp"
+#include <Cube.hpp>
 
 namespace AnimationSystem
 {
@@ -56,38 +57,57 @@ namespace AnimationSystem
         { dispatch_semaphore_signal(pRenderer->_semaphore); };
         pCmd->addCompletedHandler(drawCallback);
 
-        _angle += 0.01f;
+        _angle += 0.002f;
 
-        const float scl = 0.1f;
+        const float scl = 0.2f;
         ShaderTypes::InstanceData *pInstanceData = reinterpret_cast<ShaderTypes::InstanceData *>(pInstanceDataBuffer->contents());
 
-        float3 objectPosition = {0.f, 0.f, -5.f};
+        float3 objectPosition = {0.f, 0.f, -10.f};
 
         // Update instance positions:
 
         float4x4 rt = Math::translate(objectPosition);
-        float4x4 rr = Math::rotateY(-_angle);
+        float4x4 rr1 = Math::rotateY(-_angle);
+        float4x4 rr0 = Math::rotateX(_angle * 0.5f);
         float4x4 rtInv = Math::translate({-objectPosition.x, -objectPosition.y, -objectPosition.z});
-        float4x4 fullObjectRot = rt * rr * rtInv;
+        float4x4 fullObjectRot = rt * rr1 * rr0 * rtInv;
 
+        size_t ix = 0;
+        size_t iy = 0;
+        size_t iz = 0;
         for (size_t i = 0; i < kNumInstances; ++i)
         {
-            float iDivNumInstances = i / (float)kNumInstances;
-            float xoff = (iDivNumInstances * 2.0f - 1.0f) + (1.f / kNumInstances);
-            float yoff = sin((iDivNumInstances + _angle) * 2.0f * M_PI);
+            if (ix == kInstanceRows)
+            {
+                ix = 0;
+                iy += 1;
+            }
+
+            if (iy == kInstanceColumns)
+            {
+                iy = 0;
+                iz += 1;
+            }
 
             // Use the tiny math library to apply a 3D transformation to the instance.
             float4x4 scale = Math::scale((float3){scl, scl, scl});
-            float4x4 zrot = Math::rotateZ(_angle);
-            float4x4 yrot = Math::rotateY(_angle);
-            float4x4 translate = Math::translate(Math::add(objectPosition, {xoff, yoff, 0.f}));
+            float4x4 zrot = Math::rotateZ(_angle * sinf((float)ix));
+            float4x4 yrot = Math::rotateY(_angle * cosf((float)iy));
+
+            float x = ((float)ix - (float)kInstanceRows / 2.f) * (2.f * scl) + scl;
+            float y = ((float)iy - (float)kInstanceColumns / 2.f) * (2.f * scl) + scl;
+            float z = ((float)iz - (float)kInstanceDepth / 2.f) * (2.f * scl);
+            float4x4 translate = Math::translate(Math::add(objectPosition, {x, y, z}));
 
             pInstanceData[i].instanceTransform = fullObjectRot * translate * yrot * zrot * scale;
+            pInstanceData[i].instanceNormalTransform = Math::discardTranslation(pInstanceData[i].instanceTransform);
 
-            float r = iDivNumInstances;
+            float r = i / (float)kNumInstances;
             float g = 1.0f - r;
-            float b = sinf(M_PI * 2.0f * iDivNumInstances);
+            float b = sinf(M_PI * 2.0f * r);
             pInstanceData[i].instanceColor = (float4){r, g, b, 1.0f};
+
+            ix += 1;
         }
         pInstanceDataBuffer->didModifyRange(NS::Range::Make(0, pInstanceDataBuffer->length()));
 
@@ -97,6 +117,7 @@ namespace AnimationSystem
         ShaderTypes::CameraData *pCameraData = reinterpret_cast<ShaderTypes::CameraData *>(pCameraDataBuffer->contents());
         pCameraData->perspectiveTransform = Math::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
         pCameraData->worldTransform = Math::makeIdentity();
+        pCameraData->worldNormalTransform = Math::discardTranslation(pCameraData->worldTransform);
         pCameraDataBuffer->didModifyRange(NS::Range::Make(0, sizeof(ShaderTypes::CameraData)));
 
         // Begin render pass:
@@ -186,37 +207,50 @@ namespace AnimationSystem
     void Renderer::buildBuffers()
     {
         const float s = 0.5f;
-        // cube vertices list
-        simd::float3 verts[]{
-            {-s, -s, +s},
-            {+s, -s, +s},
-            {+s, +s, +s},
-            {-s, +s, +s},
+        const auto cube = Shapes::Cube(s);
 
-            {-s, -s, -s},
-            {+s, -s, -s},
-            {+s, +s, -s},
-            {-s, +s, -s}};
+        ShaderTypes::VertexData verts[] = {
+            //   Positions          Normals
+            {{-s, -s, +s}, {0.f, 0.f, 1.f}},
+            {{+s, -s, +s}, {0.f, 0.f, 1.f}},
+            {{+s, +s, +s}, {0.f, 0.f, 1.f}},
+            {{-s, +s, +s}, {0.f, 0.f, 1.f}},
 
-        // cube face indices
+            {{+s, -s, +s}, {1.f, 0.f, 0.f}},
+            {{+s, -s, -s}, {1.f, 0.f, 0.f}},
+            {{+s, +s, -s}, {1.f, 0.f, 0.f}},
+            {{+s, +s, +s}, {1.f, 0.f, 0.f}},
+
+            {{+s, -s, -s}, {0.f, 0.f, -1.f}},
+            {{-s, -s, -s}, {0.f, 0.f, -1.f}},
+            {{-s, +s, -s}, {0.f, 0.f, -1.f}},
+            {{+s, +s, -s}, {0.f, 0.f, -1.f}},
+
+            {{-s, -s, -s}, {-1.f, 0.f, 0.f}},
+            {{-s, -s, +s}, {-1.f, 0.f, 0.f}},
+            {{-s, +s, +s}, {-1.f, 0.f, 0.f}},
+            {{-s, +s, -s}, {-1.f, 0.f, 0.f}},
+
+            {{-s, +s, +s}, {0.f, 1.f, 0.f}},
+            {{+s, +s, +s}, {0.f, 1.f, 0.f}},
+            {{+s, +s, -s}, {0.f, 1.f, 0.f}},
+            {{-s, +s, -s}, {0.f, 1.f, 0.f}},
+
+            {{-s, -s, -s}, {0.f, -1.f, 0.f}},
+            {{+s, -s, -s}, {0.f, -1.f, 0.f}},
+            {{+s, -s, +s}, {0.f, -1.f, 0.f}},
+            {{-s, -s, +s}, {0.f, -1.f, 0.f}},
+        };
+
         uint16_t indices[] = {
-            0, 1, 2, /* front */
-            2, 3, 0,
+            0, 1, 2, 2, 3, 0,       /* front */
+            4, 5, 6, 6, 7, 4,       /* right */
+            8, 9, 10, 10, 11, 8,    /* back */
+            12, 13, 14, 14, 15, 12, /* left */
+            16, 17, 18, 18, 19, 16, /* top */
+            20, 21, 22, 22, 23, 20, /* bottom */
+        };
 
-            1, 7, 6, /* right */
-            6, 2, 1,
-
-            7, 4, 5, /* back */
-            5, 6, 7,
-
-            4, 0, 3, /* left */
-            3, 5, 4,
-
-            3, 2, 6, /* top */
-            6, 5, 3,
-
-            4, 7, 1, /* bottom */
-            1, 0, 4};
         const size_t vertexDataSize = sizeof(verts);
         const size_t indexDataSize = sizeof(indices);
 

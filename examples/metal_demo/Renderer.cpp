@@ -206,59 +206,20 @@ namespace AnimationSystem
 
     void Renderer::buildBuffers()
     {
-        const float s = 0.5f;
-        const auto cube = Shapes::Cube(s);
+        // get uniform cube that has 1/2 size each
+        auto cube = Shapes::Cube<1, 2>();
 
-        ShaderTypes::VertexData verts[] = {
-            //   Positions          Normals
-            {{-s, -s, +s}, {0.f, 0.f, 1.f}},
-            {{+s, -s, +s}, {0.f, 0.f, 1.f}},
-            {{+s, +s, +s}, {0.f, 0.f, 1.f}},
-            {{-s, +s, +s}, {0.f, 0.f, 1.f}},
+        const size_t vertexDataSize = sizeof(cube.verts);
+        const size_t indexDataSize = sizeof(cube.indices);
 
-            {{+s, -s, +s}, {1.f, 0.f, 0.f}},
-            {{+s, -s, -s}, {1.f, 0.f, 0.f}},
-            {{+s, +s, -s}, {1.f, 0.f, 0.f}},
-            {{+s, +s, +s}, {1.f, 0.f, 0.f}},
+        MTL::Buffer *a = _pDevice->newBuffer(vertexDataSize, MTL::ResourceStorageModeManaged);
+        MTL::Buffer *b = _pDevice->newBuffer(indexDataSize, MTL::ResourceStorageModeManaged);
 
-            {{+s, -s, -s}, {0.f, 0.f, -1.f}},
-            {{-s, -s, -s}, {0.f, 0.f, -1.f}},
-            {{-s, +s, -s}, {0.f, 0.f, -1.f}},
-            {{+s, +s, -s}, {0.f, 0.f, -1.f}},
+        _pVertexDataBuffer = a;
+        _pIndexBuffer = b;
 
-            {{-s, -s, -s}, {-1.f, 0.f, 0.f}},
-            {{-s, -s, +s}, {-1.f, 0.f, 0.f}},
-            {{-s, +s, +s}, {-1.f, 0.f, 0.f}},
-            {{-s, +s, -s}, {-1.f, 0.f, 0.f}},
-
-            {{-s, +s, +s}, {0.f, 1.f, 0.f}},
-            {{+s, +s, +s}, {0.f, 1.f, 0.f}},
-            {{+s, +s, -s}, {0.f, 1.f, 0.f}},
-            {{-s, +s, -s}, {0.f, 1.f, 0.f}},
-
-            {{-s, -s, -s}, {0.f, -1.f, 0.f}},
-            {{+s, -s, -s}, {0.f, -1.f, 0.f}},
-            {{+s, -s, +s}, {0.f, -1.f, 0.f}},
-            {{-s, -s, +s}, {0.f, -1.f, 0.f}},
-        };
-
-        uint16_t indices[] = {
-            0, 1, 2, 2, 3, 0,       /* front */
-            4, 5, 6, 6, 7, 4,       /* right */
-            8, 9, 10, 10, 11, 8,    /* back */
-            12, 13, 14, 14, 15, 12, /* left */
-            16, 17, 18, 18, 19, 16, /* top */
-            20, 21, 22, 22, 23, 20, /* bottom */
-        };
-
-        const size_t vertexDataSize = sizeof(verts);
-        const size_t indexDataSize = sizeof(indices);
-
-        _pVertexDataBuffer = _pDevice->newBuffer(vertexDataSize, MTL::ResourceStorageModeManaged);
-        _pIndexBuffer = _pDevice->newBuffer(indexDataSize, MTL::ResourceStorageModeManaged);
-
-        memcpy(_pVertexDataBuffer->contents(), verts, vertexDataSize);
-        memcpy(_pIndexBuffer->contents(), indices, indexDataSize);
+        memcpy(_pVertexDataBuffer->contents(), cube.verts, vertexDataSize);
+        memcpy(_pIndexBuffer->contents(), cube.indices, indexDataSize);
 
         _pVertexDataBuffer->didModifyRange(NS::Range::Make(0, _pVertexDataBuffer->length()));
         _pIndexBuffer->didModifyRange(NS::Range::Make(0, _pIndexBuffer->length()));

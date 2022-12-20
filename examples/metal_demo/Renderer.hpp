@@ -21,6 +21,7 @@ namespace AnimationSystem
         ~Renderer();
         void buildShaders();
         void buildBuffers();
+        void buildTextures();
         void buildDepthStencilStates();
         void draw(MTK::View *pView);
 
@@ -30,7 +31,7 @@ namespace AnimationSystem
         MTL::Library *_pShaderLibrary;
         MTL::RenderPipelineState *_pPSO;
         MTL::DepthStencilState *_pDepthStencilState;
-
+        MTL::Texture *_pTexture;
         MTL::Buffer *_pVertexDataBuffer;
         MTL::Buffer *_pInstanceDataBuffer[kMaxFrames];
         MTL::Buffer *_pCameraDataBuffer[kMaxFrames];

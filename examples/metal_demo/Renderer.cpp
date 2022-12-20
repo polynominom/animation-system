@@ -15,13 +15,14 @@ namespace AnimationSystem
         _pCommandQueue = _pDevice->newCommandQueue();
         buildShaders();
         buildDepthStencilStates();
+        buildTextures();
         buildBuffers();
-
         _semaphore = dispatch_semaphore_create(Renderer::kMaxFrames);
     }
 
     Renderer::~Renderer()
     {
+        _pTexture->release();
         _pShaderLibrary->release();
         _pDepthStencilState->release();
         _pVertexDataBuffer->release();
@@ -132,6 +133,8 @@ namespace AnimationSystem
         pEnc->setVertexBuffer(pInstanceDataBuffer, /* offset */ 0, /* index */ 1);
         pEnc->setVertexBuffer(pCameraDataBuffer, /* offset */ 0, /* index */ 2);
 
+        pEnc->setFragmentTexture(_pTexture, /* index */ 0);
+
         pEnc->setCullMode(MTL::CullModeBack);
         pEnc->setFrontFacingWinding(MTL::Winding::WindingCounterClockwise);
 
@@ -231,5 +234,41 @@ namespace AnimationSystem
             _pInstanceDataBuffer[i] = _pDevice->newBuffer(instanceDataSize, MTL::ResourceStorageModeManaged);
             _pCameraDataBuffer[i] = _pDevice->newBuffer(cameraDataSize, MTL::ResourceStorageModeManaged);
         }
+    }
+
+    void Renderer::buildTextures()
+    {
+        const uint32_t tw = 128;
+        const uint32_t th = 128;
+
+        MTL::TextureDescriptor *pTextureDesc = MTL::TextureDescriptor::alloc()->init();
+        pTextureDesc->setWidth(tw);
+        pTextureDesc->setHeight(th);
+        pTextureDesc->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
+        pTextureDesc->setTextureType(MTL::TextureType2D);
+        pTextureDesc->setStorageMode(MTL::StorageModeManaged);
+        pTextureDesc->setUsage(MTL::ResourceUsageSample | MTL::ResourceUsageRead);
+
+        MTL::Texture *pTexture = _pDevice->newTexture(pTextureDesc);
+        _pTexture = pTexture;
+
+        uint8_t *pTextureData = (uint8_t *)alloca(tw * th * 4);
+        for (size_t y = 0; y < th; ++y)
+        {
+            for (size_t x = 0; x < tw; ++x)
+            {
+                bool isWhite = (x ^ y) & 0b1000000;
+                uint8_t c = isWhite ? 0xFF : 0xA;
+
+                size_t i = y * tw + x;
+                pTextureData[i * 4 + 0] = c;
+                pTextureData[i * 4 + 1] = c;
+                pTextureData[i * 4 + 2] = c;
+                pTextureData[i * 4 + 3] = 0xFF;
+            }
+        }
+
+        _pTexture->replaceRegion(MTL::Region(0, 0, 0, tw, th, 1), 0, pTextureData, tw * 4);
+        pTextureDesc->release();
     }
 }

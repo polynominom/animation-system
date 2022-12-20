@@ -12,19 +12,12 @@ cmake --build
 ./example/metal_demo/metal_example
 ```
 
-Example Tasks:
-
-- [x] Add External libs: glfw, imgui, metal ...
-- [x] Basic Shader usage
-- [x] Basic transformation
-- [ ] Basic camera
-- [ ] Basic lighting
-- [ ] Basic texture
-- [ ] Basic scene
-- [ ] Basic user input handling
-
 Core Tasks:
 
+- [ ] Camera and perspective
+- [ ] Resource handling
+- [ ] Mesh loading and rendering
+- [ ] Scene
 - [ ] Entity Component System
 - [ ] Implement simple 1D BlendTree
 - [ ] Extend 2D BlendTree

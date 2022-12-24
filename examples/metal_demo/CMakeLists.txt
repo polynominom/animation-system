@@ -34,8 +34,7 @@ set(headers
 # Executable
 add_compile_options(-fno-objc-arc)
 add_executable(metal_example ${src} ${headers})
-
 # Glfw compile definition
 target_compile_definitions(metal_example PRIVATE GLFW_INCLUDE_NONE)
 # Link 3rdparty libraries
-target_link_libraries(metal_example ${APPLE_FRAMEWORK_DEPS} AnimationSystemCore)
+target_link_libraries(metal_example ${APPLE_FRAMEWORK_DEPS} AnimationSystem)

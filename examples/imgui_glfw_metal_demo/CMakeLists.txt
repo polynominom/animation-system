@@ -31,4 +31,4 @@ add_executable(ImguiGLFWMetalDemo ${src} ${hdrs})
 # Glfw compile definition
 target_compile_definitions(ImguiGLFWMetalDemo PRIVATE GLFW_INCLUDE_NONE)
 # Link 3rdparty libraries
-target_link_libraries(ImguiGLFWMetalDemo ${APPLE_FRAMEWORK_DEPS} AnimationSystemCore imgui glfw)
+target_link_libraries(ImguiGLFWMetalDemo ${APPLE_FRAMEWORK_DEPS} AnimationSystem imgui glfw)

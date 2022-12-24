@@ -1,6 +1,7 @@
 #pragma once
-#include "fs/FS.h"
-#include "task/Task.hpp"
+#include <filesystem>
+#include <fstream>
+#include <Core/Task/Task.hpp>
 
 namespace AnimationSystem
 {

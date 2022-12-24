@@ -26,6 +26,7 @@ namespace AnimationSystem
     }
 
     // /* Generic implementation */
+    // TODO: read mesh objects -> mesh reader that reads from bytes in buffered stream?
     template <typename R>
     R Reader<R>::read()
     {

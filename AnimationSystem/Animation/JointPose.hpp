@@ -1,6 +1,5 @@
 #pragma once
 #include <Base/Quaternion.hpp>
-#include "Joint.hpp"
 #include <simd/simd.h>
 
 namespace AnimationSystem

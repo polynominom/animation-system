@@ -1,6 +1,7 @@
 #include <Renderer.hpp>
-#include <AnimationSystem.h>
-#include "Math.hpp"
+#include <Core/Core.h>
+#include <Base/Base.h>
+#include <Animation/Animation.h>
 #include <Cube.hpp>
 
 namespace AnimationSystem

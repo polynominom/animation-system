@@ -1,0 +1,4 @@
+namespace AnimationSystem
+{
+
+} // namespace AnimationSystem

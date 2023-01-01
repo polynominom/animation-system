@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SKINNEDVERTEX_HPP
+#define SKINNEDVERTEX_HPP
+
 #include <vector>
 #include <iostream>
 #include <simd/simd.h>
@@ -18,3 +20,5 @@ namespace AnimationSystem
         [[no_unique_address]] simd::packed::uint4 _jointIndex;
     };
 } // namespace AnimationSystem
+
+#endif

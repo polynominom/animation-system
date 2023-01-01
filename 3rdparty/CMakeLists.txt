@@ -46,3 +46,9 @@ target_link_libraries(imgui PRIVATE glfw ${OPENGL_LIBRARY})
 set_target_properties(imgui PROPERTIES FOLDER "Dependencies")
 
 
+add_library(metal INTERFACE)
+include_directories(${METAL_DIR})
+target_include_directories(metal INTERFACE ${METAL_DIR})
+
+# Link 3rdparty libraries
+# target_link_libraries(metal ${APPLE_FRAMEWORK_DEPS} AnimationSystem)

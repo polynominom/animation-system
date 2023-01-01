@@ -1,19 +1,21 @@
-#pragma once
+#ifndef CAMERA_HPP
+#define CAMERA_HPP
+
 #include "Shader/ShaderTypes.hpp"
 #include <Base/Math.hpp>
 #include <Metal/Metal.hpp>
 
 namespace AnimationSystem
 {
-    namespace Camera
+    class Camera
     {
-        void setBuffer(MTL::Buffer *cameraBuffer)
-        {
-            pCameraData = reinterpret_cast<ShaderTypes::CameraData *>(cameraBuffer->contents());
-            pCameraData->perspectiveTransform = Math::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
-            pCameraData->worldTransform = Math::makeIdentity();
-            pCameraData->worldNormalTransform = Math::discardTranslation(pCameraData->worldTransform);
-            cameraBuffer->didModifyRange(NS::Range::Make(0, sizeof(ShaderTypes::CameraData)));
-        }
+    public:
+        void setBuffer(MTL::Device *pDevice);
+        [[nodiscard]] MTL::Buffer *getBuffer() { return _cameraBuffer; }
+        void updateData();
+
+    private:
+        MTL::Buffer *_cameraBuffer{nullptr};
     };
 } // namespace AnimationSystem
+#endif

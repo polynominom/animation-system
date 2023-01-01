@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SHADERTYPES_HPP
+#define SHADERTYPES_HPP
+
 #include <simd/simd.h>
 
 namespace AnimationSystem
@@ -28,3 +30,5 @@ namespace AnimationSystem
     }
 
 } // namespace AnimationSystem
+
+#endif

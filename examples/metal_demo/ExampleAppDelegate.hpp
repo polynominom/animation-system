@@ -1,3 +1,6 @@
+#ifndef EXAMPLEAPPDELEGATE_HPP
+#define EXAMPLEAPPDELEGATE_HPP
+
 #include <ExampleViewDelegate.hpp>
 
 namespace AnimationSystem
@@ -19,3 +22,5 @@ namespace AnimationSystem
         ExampleViewDelegate *_pViewDelegate{nullptr};
     };
 }
+
+#endif

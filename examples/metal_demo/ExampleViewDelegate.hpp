@@ -1,3 +1,6 @@
+#ifndef EXAMPLEVIEWDELEGATE_HPP
+#define EXAMPLEVIEWDELEGATE_HPP
+
 #include <Renderer.hpp>
 
 namespace AnimationSystem
@@ -13,3 +16,5 @@ namespace AnimationSystem
         Renderer *_pRenderer;
     };
 } // namespace AnimationSystem
+
+#endif

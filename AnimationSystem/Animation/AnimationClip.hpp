@@ -1,4 +1,6 @@
-#pragma once
+#ifndef ANIMATIONCLIP_HPP
+#define ANIMATIONCLIP_HPP
+
 #include "AnimationSample.hpp"
 
 namespace AnimationSystem
@@ -13,3 +15,4 @@ namespace AnimationSystem
         std::vector<AnimationSample> _animationSamples;
     };
 } // namespace AnimationSystem
+#endif

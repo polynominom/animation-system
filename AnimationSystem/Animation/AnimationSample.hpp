@@ -1,4 +1,6 @@
-#pragma once
+#ifndef ANIMATIONSAMPLE_HPP
+#define ANIMATIONSAMPLE_HPP
+
 #include "JointPose.hpp"
 #include <vector>
 
@@ -14,3 +16,5 @@ namespace AnimationSystem
         [[no_unique_address]] std::vector<JointPose> _jointPoses;
     };
 } // namespace AnimationSystem
+
+#endif

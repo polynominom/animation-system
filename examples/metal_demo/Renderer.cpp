@@ -1,8 +1,6 @@
-#include <Renderer.hpp>
-#include <Core/Core.h>
-#include <Base/Base.h>
-#include <Animation/Animation.h>
-#include <Cube.hpp>
+#include "Renderer.hpp"
+#include <Renderer/Shader/ShaderTypes.hpp>
+#include <Renderer/Shapes/Cube.hpp>
 
 namespace AnimationSystem
 {
@@ -10,7 +8,6 @@ namespace AnimationSystem
     {
         // PRIVATE FREE FUNCTIONS
     }
-
     Renderer::Renderer(MTL::Device *device) : _pDevice{device->retain()},
                                               _angle{0.f},
                                               _frame{0},
@@ -199,6 +196,9 @@ namespace AnimationSystem
         pDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
         pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth16Unorm);
 
+        pVertexFn->release();
+        pFragFn->release();
+
         _pPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pPSO)
         {
@@ -206,8 +206,6 @@ namespace AnimationSystem
             assert(false);
         }
 
-        pVertexFn->release();
-        pFragFn->release();
         pDesc->release();
         _pShaderLibrary = pLibrary;
     }
@@ -217,16 +215,14 @@ namespace AnimationSystem
         MTL::DepthStencilDescriptor *pDsDesc = MTL::DepthStencilDescriptor::alloc()->init();
         pDsDesc->setDepthCompareFunction(MTL::CompareFunction::CompareFunctionLess);
         pDsDesc->setDepthWriteEnabled(true);
-
         _pDepthStencilState = _pDevice->newDepthStencilState(pDsDesc);
-
         pDsDesc->release();
     }
 
     void Renderer::buildBuffers()
     {
         // get uniform cube that has 1/2 size each edge
-        auto cube = Shapes::Cube<1, 2>();
+        auto cube = Shapes::Cube(0.5f);
 
         const size_t vertexDataSize = sizeof(cube.verts);
         const size_t indexDataSize = sizeof(cube.indices);
@@ -256,6 +252,8 @@ namespace AnimationSystem
 
     void Renderer::buildTextures()
     {
+        auto tw = kTextureWidth;
+        auto th = kTextureHeight;
         MTL::TextureDescriptor *pTextureDesc = MTL::TextureDescriptor::alloc()->init();
         pTextureDesc->setWidth(kTextureWidth);
         pTextureDesc->setHeight(kTextureHeight);
@@ -263,57 +261,75 @@ namespace AnimationSystem
         pTextureDesc->setTextureType(MTL::TextureType2D);
         pTextureDesc->setStorageMode(MTL::StorageModeManaged);
         pTextureDesc->setUsage(MTL::ResourceUsageSample | MTL::ResourceUsageRead | MTL::ResourceUsageWrite);
-
         MTL::Texture *pTexture = _pDevice->newTexture(pTextureDesc);
         _pTexture = pTexture;
+
+        uint8_t *pTextureData = (uint8_t *)alloca(tw * th * 4);
+        for (size_t y = 0; y < th; ++y)
+        {
+            for (size_t x = 0; x < tw; ++x)
+            {
+                bool isWhite = (x ^ y) & 0b1000000;
+                uint8_t c = isWhite ? 0xFF : 0xA;
+
+                size_t i = y * tw + x;
+
+                pTextureData[i * 4 + 0] = c;
+                pTextureData[i * 4 + 1] = c;
+                pTextureData[i * 4 + 2] = c;
+                pTextureData[i * 4 + 3] = 0xFF;
+            }
+        }
+
+        _pTexture->replaceRegion(MTL::Region(0, 0, 0, tw, th, 1), 0, pTextureData, tw * 4);
 
         pTextureDesc->release();
     }
 
     void Renderer::buildComputePipeline()
     {
-        const std::filesystem::path mandelbrotComputationFilePath = "./shaders/mandelbrot";
-        auto kernelSrc = Reader<std::string>(mandelbrotComputationFilePath).read();
-        const char *c_kernelSrc = kernelSrc.c_str();
-        NS::Error *pError = nullptr;
+        // const std::filesystem::path mandelbrotComputationFilePath = "./shaders/mandelbrot";
+        // auto kernelSrc = Reader<std::string>(mandelbrotComputationFilePath).read();
+        // const char *c_kernelSrc = kernelSrc.c_str();
+        // NS::Error *pError = nullptr;
 
-        MTL::Library *pComputeLibrary = _pDevice->newLibrary(NS::String::string(c_kernelSrc, NS::UTF8StringEncoding), nullptr, &pError);
-        if (!pComputeLibrary)
-        {
-            std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
-            assert(false);
-        }
+        // MTL::Library *pComputeLibrary = _pDevice->newLibrary(NS::String::string(c_kernelSrc, NS::UTF8StringEncoding), nullptr, &pError);
+        // if (!pComputeLibrary)
+        // {
+        //     std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
+        //     assert(false);
+        // }
 
-        MTL::Function *pMandelBrotFn = pComputeLibrary->newFunction(NS::String::string("mandelbrot_set", NS::UTF8StringEncoding));
-        _pComputePSO = _pDevice->newComputePipelineState(pMandelBrotFn, &pError);
-        if (!_pComputePSO)
-        {
-            std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
-            assert(false);
-        }
+        // MTL::Function *pMandelBrotFn = pComputeLibrary->newFunction(NS::String::string("mandelbrot_set", NS::UTF8StringEncoding));
+        // _pComputePSO = _pDevice->newComputePipelineState(pMandelBrotFn, &pError);
+        // if (!_pComputePSO)
+        // {
+        //     std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
+        //     assert(false);
+        // }
 
-        pMandelBrotFn->release();
-        pComputeLibrary->release();
+        // pMandelBrotFn->release();
+        // pComputeLibrary->release();
     }
 
     void Renderer::generateMandelbrotTexture(MTL::CommandBuffer *pCommandBuffer)
     {
-        assert(pCommandBuffer);
+        // assert(pCommandBuffer);
 
-        uint *ptr = reinterpret_cast<uint *>(_pTextureAnimationBuffer->contents());
-        *ptr = (_animationIndex++) % 5000;
-        _pTextureAnimationBuffer->didModifyRange(NS::Range::Make(0, sizeof(uint)));
+        // uint *ptr = reinterpret_cast<uint *>(_pTextureAnimationBuffer->contents());
+        // *ptr = (_animationIndex++) % 5000;
+        // _pTextureAnimationBuffer->didModifyRange(NS::Range::Make(0, sizeof(uint)));
 
-        MTL::ComputeCommandEncoder *pComputeEncoder = pCommandBuffer->computeCommandEncoder();
-        pComputeEncoder->setComputePipelineState(_pComputePSO);
-        pComputeEncoder->setTexture(_pTexture, 0);
-        pComputeEncoder->setBuffer(_pTextureAnimationBuffer, 0, 0);
+        // MTL::ComputeCommandEncoder *pComputeEncoder = pCommandBuffer->computeCommandEncoder();
+        // pComputeEncoder->setComputePipelineState(_pComputePSO);
+        // pComputeEncoder->setTexture(_pTexture, 0);
+        // pComputeEncoder->setBuffer(_pTextureAnimationBuffer, 0, 0);
 
-        MTL::Size gridSize = MTL::Size(kTextureWidth, kTextureHeight, 1);
-        NS::UInteger uThreadGroupSize = _pComputePSO->maxTotalThreadsPerThreadgroup();
-        MTL::Size threadGroupSize(uThreadGroupSize, 1, 1);
+        // MTL::Size gridSize = MTL::Size(kTextureWidth, kTextureHeight, 1);
+        // NS::UInteger uThreadGroupSize = _pComputePSO->maxTotalThreadsPerThreadgroup();
+        // MTL::Size threadGroupSize(uThreadGroupSize, 1, 1);
 
-        pComputeEncoder->dispatchThreads(gridSize, threadGroupSize);
-        pComputeEncoder->endEncoding();
+        // pComputeEncoder->dispatchThreads(gridSize, threadGroupSize);
+        // pComputeEncoder->endEncoding();
     }
 }

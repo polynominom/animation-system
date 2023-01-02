@@ -9,7 +9,7 @@ namespace AnimationSystem
 {
     class SkinnedVertex
     {
-    private:
+    public:
         // Vertex variables
         [[no_unique_address]] simd::float3 _position;
         [[no_unique_address]] simd::float3 _normal;

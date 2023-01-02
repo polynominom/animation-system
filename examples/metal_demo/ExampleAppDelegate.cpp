@@ -87,7 +87,7 @@ namespace AnimationSystem
         // red
         _pMtkView->setClearColor(MTL::ClearColor::Make(0.10, 0.10, 0.10, 1.0));
 
-        _pViewDelegate = new ExampleViewDelegate(_pDevice);
+        _pViewDelegate = new CoreTestViewDelegate(_pDevice);
         _pMtkView->setDelegate(_pViewDelegate);
 
         _pWindow->setContentView(_pMtkView);

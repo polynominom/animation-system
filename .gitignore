@@ -1,5 +1,6 @@
 # Unnecessary Folders
 build/
+meshes/
 
 # Caches
 .DS_Store

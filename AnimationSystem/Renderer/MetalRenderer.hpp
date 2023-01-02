@@ -11,6 +11,7 @@
 #include <Renderer/Shapes/Cube.hpp>
 #include <Renderer/Scene.hpp>
 #include <Renderer/Mesh.hpp>
+#include <Renderer/Import.hpp>
 
 #include <vector>
 #include <iostream>

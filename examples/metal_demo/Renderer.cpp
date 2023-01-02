@@ -13,6 +13,8 @@ namespace AnimationSystem
                                               _frame{0},
                                               _animationIndex{0}
     {
+        std::cout << "----> TESTING IMPORTER \n";
+
         _pCommandQueue = _pDevice->newCommandQueue();
         buildShaders();
         std::cout << "----> buildShaders finished \n";

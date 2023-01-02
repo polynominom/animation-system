@@ -13,9 +13,17 @@ namespace AnimationSystem
     {
     public:
         ~Mesh();
-        void buildBuffers(MTL::Device *pDevice, size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices);
-        void buildInstanceBuffer(MTL::Device *pDevice, size_t instanceDataSize);
+
+        void buildBuffersFrom(MTL::Device *pDevice, size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices);
+        void buildInstanceBufferFrom(MTL::Device *pDevice, size_t instanceDataSize);
+
+        void buildBuffers(MTL::Device *pDevice);
+        void buildInstanceBuffer(MTL::Device *pDevice);
+
         [[nodiscard]] ShaderTypes::InstanceData *getInstanceData();
+
+        void addVertex(simd::float3 position, simd::float3 normal, simd::float2 texcoord);
+        void addIndex(uint16_t index);
 
         // static const int kMaxBufferCount{32};
         MTL::Buffer *pVertexBuffer{nullptr};
@@ -31,6 +39,8 @@ namespace AnimationSystem
         uint64_t numberOfInstances{0};
 
     private:
+        [[no_unique_address]] std::vector<ShaderTypes::VertexData> _verexData{};
+        [[no_unique_address]] std::vector<uint16_t> _indexData{};
         // bounding box points TODO: calculate when building mesh?
         simd::float3 _bbMin;
         simd::float3 _bbMax;

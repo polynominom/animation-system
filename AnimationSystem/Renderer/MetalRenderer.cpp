@@ -2,6 +2,28 @@
 
 namespace AnimationSystem
 {
+    namespace
+    {
+        // void old()
+        // {
+        //     // add one cube entity with mesh
+        //     auto cube = Shapes::Cube(0.5f);
+        //     Entity cubeEntity;
+        //     cubeEntity.setPosition({0.f, 0.f, -10.f, 1.f});
+
+        //     std::shared_ptr<MeshComponent> m = std::make_shared<MeshComponent>();
+        //     m->mesh = std::make_shared<Mesh>();
+        //     m->mesh->buildInstanceBufferFrom(_pDevice, sizeof(ShaderTypes::InstanceData));
+        //     m->mesh->buildBuffersFrom(_pDevice,
+        //                               sizeof(cube.verts), cube.verts,
+        //                               sizeof(cube.indices), cube.indices);
+
+        //     // add the cube to the scene
+        //     auto c = static_cast<std::shared_ptr<Component>>(m);
+        //     cubeEntity.addComponent(c);
+        //     _scene->entities.push_back(cubeEntity);
+        // }
+    }
     // hold 2-3 frames in memory
     static const int kMaxFrames{3};
     MetalRenderer::~MetalRenderer()
@@ -101,23 +123,27 @@ namespace AnimationSystem
     {
         // create scene
         _scene = std::make_shared<Scene>();
+        auto meshes = Import::loadMeshes("./meshes/modelOne/Spider.obj");
 
-        // add one cube entity with mesh
-        auto cube = Shapes::Cube(0.5f);
-        Entity cubeEntity;
-        cubeEntity.setPosition({0.f, 0.f, -10.f, 1.f});
+        std::cout << "meshes successfully parsed: " << meshes.size() << "\n";
 
-        std::shared_ptr<MeshComponent> m = std::make_shared<MeshComponent>();
-        m->mesh = std::make_shared<Mesh>();
-        m->mesh->buildInstanceBuffer(_pDevice, sizeof(ShaderTypes::InstanceData));
-        m->mesh->buildBuffers(_pDevice,
-                              sizeof(cube.verts), cube.verts,
-                              sizeof(cube.indices), cube.indices);
+        int index = 0;
+        // handle meshes
+        for (auto m : meshes)
+        {
+            std::cout << "index: " << index++ << "\n";
+            Entity e;
+            e.setPosition({0.f, 0.f, 0.f, 1.f});
 
-        // add the cube to the scene
-        auto c = static_cast<std::shared_ptr<Component>>(m);
-        cubeEntity.addComponent(c);
-        _scene->entities.push_back(cubeEntity);
+            std::shared_ptr<MeshComponent> meshComp = std::make_shared<MeshComponent>();
+
+            meshComp->mesh = std::move(m);
+            meshComp->mesh->buildBuffers(_pDevice);
+            meshComp->mesh->buildInstanceBuffer(_pDevice);
+            auto c = static_cast<std::shared_ptr<Component>>(meshComp);
+            e.addComponent(c);
+            _scene->entities.push_back(e);
+        }
 
         // build camera
         _scene->camera = std::make_shared<Camera>();
@@ -162,13 +188,10 @@ namespace AnimationSystem
             meshComp->mesh->pInstanceBuffer->didModifyRange(NS::Range::Make(0, meshComp->mesh->pInstanceBuffer->length()));
 
             // Begin render pass:
-
             MTL::RenderPassDescriptor *pRpd = pView->currentRenderPassDescriptor();
             MTL::RenderCommandEncoder *pEnc = pCmd->renderCommandEncoder(pRpd);
-
             pEnc->setRenderPipelineState(_pPSO);
             pEnc->setDepthStencilState(_pDepthStencilState);
-
             pEnc->setVertexBuffer(meshComp->mesh->pVertexBuffer, /* offset */ 0, /* index */ 0);
             pEnc->setVertexBuffer(meshComp->mesh->pInstanceBuffer, /* offset */ 0, /* index */ 1);
             pEnc->setVertexBuffer(_scene->camera->getBuffer(), /* offset */ 0, /* index */ 2);

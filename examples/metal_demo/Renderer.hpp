@@ -7,6 +7,7 @@
 #include <Metal/Metal.hpp>
 #include <Core/Core.h>
 #include <Base/Base.h>
+#include <Renderer/Import.hpp>
 
 namespace AnimationSystem
 {

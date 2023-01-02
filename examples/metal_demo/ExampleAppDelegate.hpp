@@ -1,7 +1,7 @@
 #ifndef EXAMPLEAPPDELEGATE_HPP
 #define EXAMPLEAPPDELEGATE_HPP
 
-#include <ExampleViewDelegate.hpp>
+#include <CoreTestViewDelegate.hpp>
 
 namespace AnimationSystem
 {
@@ -19,7 +19,7 @@ namespace AnimationSystem
         NS::Window *_pWindow;
         MTK::View *_pMtkView;
         MTL::Device *_pDevice;
-        ExampleViewDelegate *_pViewDelegate{nullptr};
+        CoreTestViewDelegate *_pViewDelegate{nullptr};
     };
 }
 

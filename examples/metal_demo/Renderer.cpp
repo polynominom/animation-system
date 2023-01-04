@@ -128,9 +128,8 @@ namespace AnimationSystem
 
         MTL::Buffer *pCameraDataBuffer = _pCameraDataBuffer[_frame];
         ShaderTypes::CameraData *pCameraData = reinterpret_cast<ShaderTypes::CameraData *>(pCameraDataBuffer->contents());
-        pCameraData->perspectiveTransform = Math::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
-        pCameraData->worldTransform = Math::makeIdentity();
-        pCameraData->worldNormalTransform = Math::discardTranslation(pCameraData->worldTransform);
+        pCameraData->projectionM = Math::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
+        pCameraData->viewM = Math::makeIdentity();
         pCameraDataBuffer->didModifyRange(NS::Range::Make(0, sizeof(ShaderTypes::CameraData)));
 
         // update texture
@@ -171,7 +170,7 @@ namespace AnimationSystem
     {
         using NS::StringEncoding::UTF8StringEncoding;
 
-        const std::filesystem::path shaderPath = "./shaders/example_shader.glsl";
+        const std::filesystem::path shaderPath = "/Users/cagriyildiz/projects/animation-system/examples/shaders/example_shader.metal";
         auto shaderSrc = Reader<std::string>(shaderPath).read();
         const char *c_shaderSrc = shaderSrc.c_str();
         if (shaderSrc.empty())

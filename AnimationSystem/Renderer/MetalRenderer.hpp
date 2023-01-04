@@ -51,6 +51,9 @@ namespace AnimationSystem
 
         // Texture
         MTL::Texture *_pTexture;
+        
+        // uniform buffer
+        MTL::Buffer *_pUniformBuffer;
 
         // scene
         std::shared_ptr<Scene> _scene;
@@ -58,6 +61,9 @@ namespace AnimationSystem
         int _frame;
         dispatch_semaphore_t _semaphore;
         uint _animationIndex;
+        float _zoom;
+
+        size_t _drawIndex;
     };
 } // namespace AnimationSystem
 

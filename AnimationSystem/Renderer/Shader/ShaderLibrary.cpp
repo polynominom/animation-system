@@ -23,8 +23,6 @@ namespace AnimationSystem
 
     void ShaderLibrary::add(MTL::Library *pLibrary, std::string shaderSourceName, const char *shaderSource)
     {
-        MTL::Function *pVertexFn = pLibrary->newFunction(NS::String::string("vertexMain", UTF8StringEncoding));
-        MTL::Function *pFragFn = pLibrary->newFunction(NS::String::string("fragmentMain", UTF8StringEncoding));
         _shaderMap.insert(std::make_pair(shaderSourceName, pLibrary));
     }
 
@@ -33,8 +31,8 @@ namespace AnimationSystem
         MTL::Library *pLibrary = get(shaderSourceName);
 
         MTL::RenderPipelineDescriptor *pDesc = MTL::RenderPipelineDescriptor::alloc()->init();
-        MTL::Function *pVertexFn = pLibrary->newFunction(NS::String::string("vertexMain", UTF8StringEncoding));
-        MTL::Function *pFragFn = pLibrary->newFunction(NS::String::string("fragmentMain", UTF8StringEncoding));
+        MTL::Function *pVertexFn = pLibrary->newFunction(NS::String::string("phong_vertex", UTF8StringEncoding));
+        MTL::Function *pFragFn = pLibrary->newFunction(NS::String::string("phong_fragment", UTF8StringEncoding));
 
         pDesc->setVertexFunction(pVertexFn);
         pDesc->setFragmentFunction(pFragFn);

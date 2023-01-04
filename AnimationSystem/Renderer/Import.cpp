@@ -1,6 +1,6 @@
 #include "Import.hpp"
-// #define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_OptimizeGraph)
-#define ASSIMP_LOAD_FLAGS (aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded)
+#define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded)
+// #define ASSIMP_LOAD_FLAGS (aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded)
 //  aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded
 // ai_scene = aiApplyPostProcessing(ai_scene, aiProcess_FixInfacingNormals | aiProcess_MakeLeftHanded);
 
@@ -21,11 +21,20 @@ namespace AnimationSystem
                 simd::float3 nor;
                 simd::float2 tex;
                 if (assimpMesh->HasPositions())
+                {
                     pos = (simd::float3){assimpMesh->mVertices[vi].x, assimpMesh->mVertices[vi].y, assimpMesh->mVertices[vi].z};
+                }
+
                 if (assimpMesh->HasNormals())
+                {
                     nor = (simd::float3){assimpMesh->mNormals[vi].x, assimpMesh->mNormals[vi].y, assimpMesh->mNormals[vi].z};
+                }
+
                 if (assimpMesh->HasTextureCoords(0))
+                {
                     tex = (simd::float2){assimpMesh->mTextureCoords[0][vi].x, assimpMesh->mTextureCoords[0][vi].y};
+                }
+
                 if (assimpMesh->HasBones())
                 {
                     // uint64_t nJoints = pmesh->mNumBones;
@@ -35,7 +44,10 @@ namespace AnimationSystem
                 {
                     // handle tangents and bit tangents
                 }
-
+                // std::cout << "Adding vertex, pos: (" << pos.x << "," << pos.y << "," << pos.z << "), "
+                //           << "nor: (" << nor.x << "," << nor.y << "," << nor.z << "), "
+                //           << " tex: (" << tex.x << "," << tex.y << ")"
+                //           << "\n";
                 m->addVertex(pos, nor, tex);
             }
 
@@ -46,6 +58,7 @@ namespace AnimationSystem
                     const aiFace face = assimpMesh->mFaces[f];
                     for (size_t k = 0; k < face.mNumIndices; k++)
                     {
+                        // std::cout << "Adding index: " << face.mIndices[k] << "\n";
                         m->addIndex(face.mIndices[k]);
                     }
                 }
@@ -72,6 +85,7 @@ namespace AnimationSystem
     {
         Assimp::Importer Importer;
         const aiScene *pScene = Importer.ReadFile(filename, ASSIMP_LOAD_FLAGS);
+        // pScene = aiApplyPostProcessing(pScene, aiProcess_FixInfacingNormals | aiProcess_MakeLeftHanded);
 
         if (!pScene)
         {

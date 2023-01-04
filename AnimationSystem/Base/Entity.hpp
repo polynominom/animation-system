@@ -16,6 +16,9 @@ namespace AnimationSystem
         Entity(simd::float4 pos, simd::float4 scale);
         Entity(simd::float4 pos, simd::float4 scale, Base::Quaternion rot);
         void setPosition(simd::float4 pos) { _position = pos; }
+        void setScale(simd::float4 scale) { _scale = scale; }
+        void setScale(simd::float3 scale) { _scale = simd::float4{scale.x, scale.y, scale.z, 1.0f}; }
+
         void addComponent(std::shared_ptr<Component> &comp);
 
         [[nodiscard]] Base::Quaternion getRotation() { return _rotation; }

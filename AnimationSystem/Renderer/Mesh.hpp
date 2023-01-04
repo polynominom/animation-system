@@ -6,6 +6,7 @@
 #include <Base/Component.hpp>
 #include "Shader/ShaderTypes.hpp"
 #include <simd/simd.h>
+#include "Shapes/Cube.hpp"
 
 namespace AnimationSystem
 {
@@ -24,11 +25,14 @@ namespace AnimationSystem
 
         void addVertex(simd::float3 position, simd::float3 normal, simd::float2 texcoord);
         void addIndex(uint16_t index);
+        void hebele();
 
         // static const int kMaxBufferCount{32};
+        // Vertex Buffer of the mesh
         MTL::Buffer *pVertexBuffer{nullptr};
         uint64_t numberOfVertices{0};
 
+        // Index buffer of the mesh
         MTL::Buffer *pIndexBuffer{nullptr};
         uint64_t numberOfIndices{0};
 
@@ -50,6 +54,7 @@ namespace AnimationSystem
     {
     public:
         std::shared_ptr<Mesh> mesh;
+
         virtual std::string getName() noexcept override;
     };
 } // namespace AnimationSystem

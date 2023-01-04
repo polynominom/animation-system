@@ -8,6 +8,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 FILE(COPY ${SHADER_RESOURCES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 FILE(COPY ${MESH_RESOURCES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+set_source_files_properties(${SHADER_RESOURCES_FILES} PROPERTIES FOLDER "Dependencies")
+set_source_files_properties(${MESH_RESOURCES_FILES} PROPERTIES FOLDER "Dependencies")
 
 # Add sources
 set(src 
@@ -31,3 +33,7 @@ add_executable(metal_example ${src} ${headers})
 target_compile_definitions(metal_example PRIVATE GLFW_INCLUDE_NONE)
 # Link 3rdparty libraries
 target_link_libraries(metal_example ${APPLE_FRAMEWORK_DEPS} AnimationSystem metal)
+target_sources(metal_example PUBLIC ${SHADER_RESOURCES_FILES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${headers})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${src})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SHADER_RESOURCES_FILES})

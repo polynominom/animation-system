@@ -11,6 +11,7 @@ namespace AnimationSystem
         using simd::float2;
         struct Cube
         {
+            Cube();
             Cube(float size);
             ShaderTypes::VertexData verts[24];
             uint16_t indices[36];

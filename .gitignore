@@ -1,6 +1,8 @@
 # Unnecessary Folders
 build/
 meshes/
+xcode_build/
+temp.txt
 
 # Caches
 .DS_Store

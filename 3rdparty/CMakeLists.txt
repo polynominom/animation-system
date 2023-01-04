@@ -50,7 +50,6 @@ add_library(metal INTERFACE)
 include_directories(${METAL_DIR})
 target_include_directories(metal INTERFACE ${METAL_DIR})
 
-
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 set(ASSIMP_INSTALL OFF)
 set(ASSIMP_BUILD_TESTS OFF)

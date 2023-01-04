@@ -1,4 +1,6 @@
 #include "MetalRenderer.hpp"
+#include <Core/CommonConsts.hpp>
+#include <Renderer/BufferHelper.hpp>
 
 namespace AnimationSystem
 {
@@ -36,8 +38,10 @@ namespace AnimationSystem
 
     MetalRenderer::MetalRenderer(MTL::Device *device) : _pDevice{device->retain()},
                                                         _frame{0},
+                                                        _drawIndex{0},
                                                         _animationIndex{0}
     {
+        _zoom = 0;
         _pCommandQueue = _pDevice->newCommandQueue();
         buildShaders();
         std::cout << "----> buildShaders finished \n";
@@ -57,8 +61,8 @@ namespace AnimationSystem
     {
 
         _shaderLibrary = ShaderLibrary{};
-
-        const std::filesystem::path shaderPath = "./shaders/example_shader.glsl";
+        
+        const std::filesystem::path shaderPath{COMMON_applPhongShaderPath};
         AnimationSystem::ShaderResource::load(_pDevice, shaderPath, _shaderLibrary);
         MTL::RenderPipelineDescriptor *pDesc = _shaderLibrary.registerPipelineDescriptor(shaderPath);
 
@@ -123,17 +127,18 @@ namespace AnimationSystem
     {
         // create scene
         _scene = std::make_shared<Scene>();
-        auto meshes = Import::loadMeshes("./meshes/modelOne/Spider.obj");
+        auto meshes = Import::loadMeshes(COMMON_exampleMeshPath.data());
 
         std::cout << "meshes successfully parsed: " << meshes.size() << "\n";
-
+        Shapes::Cube cube;
         int index = 0;
         // handle meshes
         for (auto m : meshes)
         {
-            std::cout << "index: " << index++ << "\n";
+            // std::cout << "index: " << index++ << "\n";
             Entity e;
-            e.setPosition({0.f, 0.f, 0.f, 1.f});
+            e.setPosition({2.f, 4.f, -140.f, 1.f});
+            e.setScale((simd::float4){.5f, .5f, .5f, .5f});
 
             std::shared_ptr<MeshComponent> meshComp = std::make_shared<MeshComponent>();
 
@@ -145,56 +150,77 @@ namespace AnimationSystem
             _scene->entities.push_back(e);
         }
 
+        Entity cubeEntity;
+        cubeEntity.setPosition({0.f, -3.f, -40.f, 1.f});
+        cubeEntity.setScale((simd::float4){0.5f, 0.5f, 0.5f, 1.f});
+        std::shared_ptr<MeshComponent> m = std::make_shared<MeshComponent>();
+        m->mesh = std::make_shared<Mesh>();
+        m->mesh->buildInstanceBufferFrom(_pDevice, sizeof(ShaderTypes::InstanceData));
+        m->mesh->buildBuffersFrom(_pDevice,
+                                  sizeof(cube.verts), cube.verts,
+                                  sizeof(cube.indices), cube.indices);
+
+        // add the cube to the scene
+        auto c = static_cast<std::shared_ptr<Component>>(m);
+        cubeEntity.addComponent(c);
+        _scene->entities.push_back(cubeEntity);
+
         // build camera
         _scene->camera = std::make_shared<Camera>();
-        _scene->camera->setBuffer(_pDevice);
-
+        _scene->camera->initData({.0,.0,-10.f});
+        
+        // build uniform buffer
+        _pUniformBuffer = _pDevice->newBuffer(sizeof(ShaderTypes::UniformData), MTL::ResourceStorageModeManaged);
+        
         //_pTextureAnimationBuffer = _pDevice->newBuffer(sizeof(uint), MTL::ResourceStorageModeManaged);
     }
 
     void MetalRenderer::draw(MTK::View *pView)
     {
-        using simd::float3;
-        using simd::float4;
-        using simd::float4x4;
-
         NS::AutoreleasePool *pPool = NS::AutoreleasePool::alloc()->init();
-        MTL::CommandBuffer *pCmd = _pCommandQueue->commandBuffer();
-        dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
-
+        _scene->camera->updateData();
+        // render entities that has mesh components.
         MetalRenderer *pRenderer = this;
         // complete handler
         std::function<void(MTL::CommandBuffer *)> drawCallback = [pRenderer](MTL::CommandBuffer *pCmd)
         { dispatch_semaphore_signal(pRenderer->_semaphore); };
+
+        MTL::CommandBuffer *pCmd = _pCommandQueue->commandBuffer();
+        dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
+
         pCmd->addCompletedHandler(drawCallback);
-
-        const float scl = 0.2f;
-
-        _scene->camera->updateData();
-
-        // render entities that has mesh components.
+        size_t entityIndex = 0;
         for (auto &ent : _scene->filterEntities("MeshComponent"))
         {
+
             auto meshComp = std::dynamic_pointer_cast<MeshComponent>(ent.getComponent("MeshComponent"));
+            // INSTANCE MANIPULATION
             ShaderTypes::InstanceData *pInstanceData = meshComp->mesh->getInstanceData();
 
             // MATRIX MULTIPLICATIONS FOR ROTATION, POSITION, SCALE
-            // INSTANCE MANIPULATION
-            auto scale = Math::scale((float3){scl, scl, scl});
-            auto translate = Math::translate(Math::add(ent.getPosition().xyz, {0., 2., 2.}));
+            auto scale = Math::scale(ent.getScale().xyz);
+            // ent.setPosition({ent.getPosition().x, ent.getPosition().y, ent.getPosition().z + _zoom});
+            // std::cout << "p.x: " << ent.getPosition().x << " p.y: " << ent.getPosition().y << " p.z: " << ent.getPosition().z << std::endl;
+            auto translate = Math::translate(Math::add(ent.getPosition().xyz, {0., 0., 0.0}));
             pInstanceData->instanceTransform = Math::makeIdentity() * translate * scale;
-            pInstanceData->instanceNormalTransform = Math::discardTranslation(pInstanceData->instanceTransform);
-            pInstanceData->instanceColor = (simd::float4){0.32, 0.1, 0.1, 1.0f};
+            //pInstanceData->instanceNormalTransform = Math::discardTranslation(pInstanceData->instanceTransform);
+            //pInstanceData->instanceColor = (simd::float4){0.65, 0.4, 0.1f, 1.f};
             meshComp->mesh->pInstanceBuffer->didModifyRange(NS::Range::Make(0, meshComp->mesh->pInstanceBuffer->length()));
 
             // Begin render pass:
             MTL::RenderPassDescriptor *pRpd = pView->currentRenderPassDescriptor();
+            auto loadAction = (entityIndex == 0) ? MTL::LoadActionClear : MTL::LoadActionLoad;
+            pRpd->colorAttachments()->object(0)->setLoadAction(loadAction);
+            //  pRpd->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(0.100, 0.100, 0.100, 1));
+            
+            BufferHelper::updateUniformBuffer(_pUniformBuffer, _scene->camera->data(), pInstanceData->instanceTransform);
+            
             MTL::RenderCommandEncoder *pEnc = pCmd->renderCommandEncoder(pRpd);
             pEnc->setRenderPipelineState(_pPSO);
             pEnc->setDepthStencilState(_pDepthStencilState);
             pEnc->setVertexBuffer(meshComp->mesh->pVertexBuffer, /* offset */ 0, /* index */ 0);
-            pEnc->setVertexBuffer(meshComp->mesh->pInstanceBuffer, /* offset */ 0, /* index */ 1);
-            pEnc->setVertexBuffer(_scene->camera->getBuffer(), /* offset */ 0, /* index */ 2);
+            //pEnc->setVertexBuffer(meshComp->mesh->pInstanceBuffer, /* offset */ 0, /* index */ 1);
+            pEnc->setVertexBuffer(_pUniformBuffer, /* offset */ 0, /* index */ 1);
 
             pEnc->setFragmentTexture(_pTexture, /* index */ 0);
 
@@ -202,18 +228,16 @@ namespace AnimationSystem
             pEnc->setFrontFacingWinding(MTL::Winding::WindingCounterClockwise);
 
             pEnc->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle,
-                                        6 * 6, MTL::IndexType::IndexTypeUInt16,
-                                        meshComp->mesh->pIndexBuffer,
-                                        0,
-                                        1);
+                                        meshComp->mesh->numberOfIndices, MTL::IndexType::IndexTypeUInt16,
+                                        meshComp->mesh->pIndexBuffer, 0, 1);
 
             pEnc->endEncoding();
-        }
+            pView->clearDepth();
 
+            ++entityIndex;
+        }
         pCmd->presentDrawable(pView->currentDrawable());
         pCmd->commit();
-
-        pPool->release();
     }
 
 } // namespace AnimationSystem

@@ -170,7 +170,7 @@ namespace AnimationSystem
     {
         using NS::StringEncoding::UTF8StringEncoding;
 
-        const std::filesystem::path shaderPath = "/Users/cagriyildiz/projects/animation-system/examples/shaders/example_shader.metal";
+        const std::filesystem::path shaderPath = "./shaders/example_shader.metal";
         auto shaderSrc = Reader<std::string>(shaderPath).read();
         const char *c_shaderSrc = shaderSrc.c_str();
         if (shaderSrc.empty())
@@ -289,48 +289,48 @@ namespace AnimationSystem
 
     void Renderer::buildComputePipeline()
     {
-        // const std::filesystem::path mandelbrotComputationFilePath = "./shaders/mandelbrot";
-        // auto kernelSrc = Reader<std::string>(mandelbrotComputationFilePath).read();
-        // const char *c_kernelSrc = kernelSrc.c_str();
-        // NS::Error *pError = nullptr;
+        const std::filesystem::path mandelbrotComputationFilePath = "./shaders/mandelbrot";
+        auto kernelSrc = Reader<std::string>(mandelbrotComputationFilePath).read();
+        const char *c_kernelSrc = kernelSrc.c_str();
+        NS::Error *pError = nullptr;
 
-        // MTL::Library *pComputeLibrary = _pDevice->newLibrary(NS::String::string(c_kernelSrc, NS::UTF8StringEncoding), nullptr, &pError);
-        // if (!pComputeLibrary)
-        // {
-        //     std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
-        //     assert(false);
-        // }
+        MTL::Library *pComputeLibrary = _pDevice->newLibrary(NS::String::string(c_kernelSrc, NS::UTF8StringEncoding), nullptr, &pError);
+        if (!pComputeLibrary)
+        {
+            std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
+            assert(false);
+        }
 
-        // MTL::Function *pMandelBrotFn = pComputeLibrary->newFunction(NS::String::string("mandelbrot_set", NS::UTF8StringEncoding));
-        // _pComputePSO = _pDevice->newComputePipelineState(pMandelBrotFn, &pError);
-        // if (!_pComputePSO)
-        // {
-        //     std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
-        //     assert(false);
-        // }
+        MTL::Function *pMandelBrotFn = pComputeLibrary->newFunction(NS::String::string("mandelbrot_set", NS::UTF8StringEncoding));
+        _pComputePSO = _pDevice->newComputePipelineState(pMandelBrotFn, &pError);
+        if (!_pComputePSO)
+        {
+            std::cout << "[AnimationSystem::ERROR]" << pError->localizedDescription()->utf8String() << "\n";
+            assert(false);
+        }
 
-        // pMandelBrotFn->release();
-        // pComputeLibrary->release();
+        pMandelBrotFn->release();
+        pComputeLibrary->release();
     }
 
     void Renderer::generateMandelbrotTexture(MTL::CommandBuffer *pCommandBuffer)
     {
-        // assert(pCommandBuffer);
+        assert(pCommandBuffer);
 
-        // uint *ptr = reinterpret_cast<uint *>(_pTextureAnimationBuffer->contents());
-        // *ptr = (_animationIndex++) % 5000;
-        // _pTextureAnimationBuffer->didModifyRange(NS::Range::Make(0, sizeof(uint)));
+        uint *ptr = reinterpret_cast<uint *>(_pTextureAnimationBuffer->contents());
+        *ptr = (_animationIndex++) % 5000;
+        _pTextureAnimationBuffer->didModifyRange(NS::Range::Make(0, sizeof(uint)));
 
-        // MTL::ComputeCommandEncoder *pComputeEncoder = pCommandBuffer->computeCommandEncoder();
-        // pComputeEncoder->setComputePipelineState(_pComputePSO);
-        // pComputeEncoder->setTexture(_pTexture, 0);
-        // pComputeEncoder->setBuffer(_pTextureAnimationBuffer, 0, 0);
+        MTL::ComputeCommandEncoder *pComputeEncoder = pCommandBuffer->computeCommandEncoder();
+        pComputeEncoder->setComputePipelineState(_pComputePSO);
+        pComputeEncoder->setTexture(_pTexture, 0);
+        pComputeEncoder->setBuffer(_pTextureAnimationBuffer, 0, 0);
 
-        // MTL::Size gridSize = MTL::Size(kTextureWidth, kTextureHeight, 1);
-        // NS::UInteger uThreadGroupSize = _pComputePSO->maxTotalThreadsPerThreadgroup();
-        // MTL::Size threadGroupSize(uThreadGroupSize, 1, 1);
+        MTL::Size gridSize = MTL::Size(kTextureWidth, kTextureHeight, 1);
+        NS::UInteger uThreadGroupSize = _pComputePSO->maxTotalThreadsPerThreadgroup();
+        MTL::Size threadGroupSize(uThreadGroupSize, 1, 1);
 
-        // pComputeEncoder->dispatchThreads(gridSize, threadGroupSize);
-        // pComputeEncoder->endEncoding();
+        pComputeEncoder->dispatchThreads(gridSize, threadGroupSize);
+        pComputeEncoder->endEncoding();
     }
 }

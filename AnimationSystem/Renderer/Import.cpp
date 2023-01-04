@@ -1,5 +1,8 @@
 #include "Import.hpp"
 #define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded)
+
+#define MAX_NUM_BONES_PER_VERTEX 4
+
 // #define ASSIMP_LOAD_FLAGS (aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded)
 //  aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded
 // ai_scene = aiApplyPostProcessing(ai_scene, aiProcess_FixInfacingNormals | aiProcess_MakeLeftHanded);
@@ -35,14 +38,10 @@ namespace AnimationSystem
                     tex = (simd::float2){assimpMesh->mTextureCoords[0][vi].x, assimpMesh->mTextureCoords[0][vi].y};
                 }
 
-                if (assimpMesh->HasBones())
-                {
-                    // uint64_t nJoints = pmesh->mNumBones;
-                    // TODO: import joints and create skeletons and skinned vertices
-                }
+   
                 if (assimpMesh->HasTangentsAndBitangents())
                 {
-                    // handle tangents and bit tangents
+                    // TODO: handle tangents and bit tangents
                 }
                 // std::cout << "Adding vertex, pos: (" << pos.x << "," << pos.y << "," << pos.z << "), "
                 //           << "nor: (" << nor.x << "," << nor.y << "," << nor.z << "), "
@@ -50,6 +49,7 @@ namespace AnimationSystem
                 //           << "\n";
                 m->addVertex(pos, nor, tex);
             }
+            
 
             if (assimpMesh->HasFaces())
             {
@@ -62,6 +62,22 @@ namespace AnimationSystem
                         m->addIndex(face.mIndices[k]);
                     }
                 }
+            }
+            
+            if (assimpMesh->HasBones())
+            {
+                m->initSkinnedVertex();
+                for(size_t ji = 0; ji < assimpMesh->mNumBones; ++ji)
+                {
+                    auto joint =assimpMesh->mBones[ji];
+                    for(size_t wi = 0; wi < joint->mNumWeights; ++wi )
+                    {
+                        m->addSkinnedVertexWeight(joint->mWeights[wi].mVertexId, ji, joint->mWeights[wi].mWeight);
+                        // seems like more 4 joints effecting one vertex.
+                    }
+                }
+                // jointIndex
+                
             }
 
             return m;

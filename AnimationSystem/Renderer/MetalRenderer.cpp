@@ -127,7 +127,7 @@ namespace AnimationSystem
     {
         // create scene
         _scene = std::make_shared<Scene>();
-        auto meshes = Import::loadMeshes(COMMON_exampleMeshPath.data());
+        auto meshes = Import::loadMeshes(COMMON_dudeFBXPath.data());
 
         std::cout << "meshes successfully parsed: " << meshes.size() << "\n";
         Shapes::Cube cube;

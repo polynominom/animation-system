@@ -7,6 +7,7 @@
 #include "Shader/ShaderTypes.hpp"
 #include <simd/simd.h>
 #include "Shapes/Cube.hpp"
+#include <Animation/SkinnedVertex.hpp>
 
 namespace AnimationSystem
 {
@@ -24,8 +25,10 @@ namespace AnimationSystem
         [[nodiscard]] ShaderTypes::InstanceData *getInstanceData();
 
         void addVertex(simd::float3 position, simd::float3 normal, simd::float2 texcoord);
+        void initSkinnedVertex();
+        void addSkinnedVertexWeight(size_t vertexId, size_t jointIndex, float weight);
         void addIndex(uint16_t index);
-        void hebele();
+        
 
         // static const int kMaxBufferCount{32};
         // Vertex Buffer of the mesh
@@ -43,7 +46,8 @@ namespace AnimationSystem
         uint64_t numberOfInstances{0};
 
     private:
-        [[no_unique_address]] std::vector<ShaderTypes::VertexData> _verexData{};
+        [[no_unique_address]] std::vector<ShaderTypes::VertexData> _vertexData{};
+        [[no_unique_address]] std::vector<SkinnedVertex> _skinnedVertices{};
         [[no_unique_address]] std::vector<uint16_t> _indexData{};
         // bounding box points TODO: calculate when building mesh?
         simd::float3 _bbMin;

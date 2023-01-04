@@ -1,6 +1,7 @@
 
 #include "Mesh.hpp"
 #include <iostream>
+#include <execution>
 
 namespace AnimationSystem
 {
@@ -32,13 +33,13 @@ namespace AnimationSystem
 
     void Mesh::buildBuffers(MTL::Device *pDevice)
     {
-        size_t vertexDataSize = sizeof(ShaderTypes::VertexData) * this->_verexData.size();
+        size_t vertexDataSize = sizeof(ShaderTypes::VertexData) * this->_vertexData.size();
         size_t indexDataSize = sizeof(uint16_t) * this->_indexData.size();
 
         this->pVertexBuffer = pDevice->newBuffer(vertexDataSize, MTL::ResourceStorageModeManaged);
         this->pIndexBuffer = pDevice->newBuffer(indexDataSize, MTL::ResourceStorageModeManaged);
 
-        copyAndUpdateBuffer(this->pVertexBuffer, this->_verexData.data(), vertexDataSize);
+        copyAndUpdateBuffer(this->pVertexBuffer, this->_vertexData.data(), vertexDataSize);
         copyAndUpdateBuffer(this->pIndexBuffer, this->_indexData.data(), indexDataSize);
     }
 
@@ -67,7 +68,7 @@ namespace AnimationSystem
     void Mesh::addVertex(simd::float3 position, simd::float3 normal, simd::float2 texcoord)
     {
         {
-            auto &vertex = _verexData.emplace_back();
+            auto &vertex = _vertexData.emplace_back();
             vertex.position = position;
             vertex.normal = normal;
             vertex.texcoord = texcoord;
@@ -78,15 +79,55 @@ namespace AnimationSystem
     {
         _indexData.push_back(index);
     }
-
-    void Mesh::hebele()
+    
+void Mesh::initSkinnedVertex()
+{
+    _skinnedVertices.resize(_vertexData.size());
+    #pragma omp parallel for
+    for(int i = 0; i<_vertexData.size();++i)
     {
-        // std::cout << "Changing indices\n";
-        // this->_indexData.clear();
-        // this->_indexData = std::vector<uint16_t>(36, 0);
-        // Shapes::Cube c(0.4);
-        // for (int i = 0; i < 36; ++i)
-        //     this->_indexData[i] = c.indices[i];
+        _skinnedVertices[i]._position = _vertexData[i].position;
+        _skinnedVertices[i]._normal = _vertexData[i].normal;
+        _skinnedVertices[i]._texCoord = _vertexData[i].texcoord;
+    };
+    
+    std::cout << "skinned vertices are initialized: "<<_skinnedVertices[0]._position.y<<"\n";
+}
+    void Mesh::addSkinnedVertexWeight(size_t vertexId, size_t jointIndex, float weight)
+    {
+        auto v = _skinnedVertices[vertexId];
+        
+        // No weight initialized for the vertex, adding 1st weight.
+        if(v._jointWeights.x == 0)
+        {
+            v._jointWeights.x = weight;
+            v._jointIndex.x = jointIndex;
+            return;
+        }
+        
+        // 2nd weight.
+        if(v._jointWeights.y == 0)
+        {
+            v._jointWeights.y = weight;
+            v._jointIndex.y = jointIndex;
+            return;
+        }
+        
+        // 3rd weight.
+        if(v._jointWeights.z == 0)
+        {
+            v._jointWeights.z = weight;
+            v._jointIndex.z = jointIndex;
+            return;
+        }
+        
+        // 4th weight,
+        if(v._jointIndex[3] ==  -1)
+        {
+            v._jointWeights.z = weight;
+            v._jointIndex.z = jointIndex;
+        }
+            
     }
 
 } // namespace AnimationSystem

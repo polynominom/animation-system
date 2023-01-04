@@ -1,4 +1,6 @@
-#pragma once
+#ifndef TASK_HPP
+#define TASK_HPP
+
 #include <future>
 #include <functional>
 
@@ -23,3 +25,5 @@ namespace AnimationSystem
         std::promise<R> _mPromise{};
     };
 } // namespace AnimationSystem
+
+#endif

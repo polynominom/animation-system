@@ -1,4 +1,6 @@
-#pragma once
+#ifndef JOINTPOSE_HPP
+#define JOINTPOSE_HPP
+
 #include <Base/Quaternion.hpp>
 #include <simd/simd.h>
 
@@ -12,3 +14,5 @@ namespace AnimationSystem
         simd::float4 _scale;
     };
 } // namespace AnimationSystem
+
+#endif

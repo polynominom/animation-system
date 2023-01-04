@@ -1,4 +1,6 @@
-#pragma once
+#ifndef READER_HPP
+#define READER_HPP
+
 #include <filesystem>
 #include <fstream>
 #include <Core/Task/Task.hpp>
@@ -18,3 +20,5 @@ namespace AnimationSystem
     };
 
 } // namespace AnimationSystem
+
+#endif

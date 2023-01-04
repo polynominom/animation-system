@@ -16,7 +16,7 @@
  */
 
 #include <cassert>
-#include <ExampleAppDelegate.hpp>
+#include "ExampleAppDelegate.hpp"
 
 int main()
 {

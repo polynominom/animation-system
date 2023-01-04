@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SKELETONPOSE_HPP
+#define SKELETONPOSE_HPP
+
 #include "Skeleton.hpp"
 #include "JointPose.hpp"
 #include <memory>
@@ -18,3 +20,5 @@ namespace AnimationSystem
     };
 
 } // namespace AnimationSystem
+
+#endif

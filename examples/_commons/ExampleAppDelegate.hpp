@@ -1,4 +1,15 @@
+#ifndef EXAMPLEAPPDELEGATE_HPP
+#define EXAMPLEAPPDELEGATE_HPP
+
+#if defined(COREDEMO)
+#include <CoreTestViewDelegate.hpp>
+#define DEMO_VIEW_DELEGATE AnimationSystem::CoreTestViewDelegate
+#elif defined(METALDEMO)
 #include <ExampleViewDelegate.hpp>
+#define DEMO_VIEW_DELEGATE AnimationSystem::ExampleViewDelegate
+#else
+#define DEMO_VIEW_DELEGATE
+#endif
 
 namespace AnimationSystem
 {
@@ -16,6 +27,8 @@ namespace AnimationSystem
         NS::Window *_pWindow;
         MTK::View *_pMtkView;
         MTL::Device *_pDevice;
-        ExampleViewDelegate *_pViewDelegate{nullptr};
+        DEMO_VIEW_DELEGATE *_pViewDelegate{nullptr};
     };
 }
+
+#endif

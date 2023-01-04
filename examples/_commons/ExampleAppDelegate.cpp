@@ -69,7 +69,7 @@ namespace AnimationSystem
 
     void ExampleAppDelegate::applicationDidFinishLaunching(NS::Notification *pNotification)
     {
-        CGRect frame = (CGRect){{100.0, 100.0}, {1024.0, 1024.0}};
+        CGRect frame = (CGRect){{100.0, 100.0}, {700.0, 700.0}};
 
         _pWindow = NS::Window::alloc()->init(
             frame,
@@ -87,7 +87,7 @@ namespace AnimationSystem
         // red
         _pMtkView->setClearColor(MTL::ClearColor::Make(0.10, 0.10, 0.10, 1.0));
 
-        _pViewDelegate = new ExampleViewDelegate(_pDevice);
+        _pViewDelegate = new DEMO_VIEW_DELEGATE(_pDevice);
         _pMtkView->setDelegate(_pViewDelegate);
 
         _pWindow->setContentView(_pMtkView);

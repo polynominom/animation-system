@@ -35,22 +35,49 @@ file(GLOB base_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/Base/*.hpp)
 file(GLOB anim_src ${CMAKE_CURRENT_SOURCE_DIR}/Animation/*.cpp)
 file(GLOB anim_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/Animation/*.hpp)
 
+# Get Renderer Files
+file(GLOB renderer_src ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/*.cpp)
+file(GLOB renderer_shader_src ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Shader/*.cpp)
+file(GLOB renderer_texture_src ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Texture/*.cpp)
+file(GLOB renderer_shapes_src ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Shapes/*.cpp)
+set(renderer_src 
+        ${renderer_src}
+        ${renderer_shader_src}
+        ${renderer_texture_src}
+        ${renderer_shapes_src})
+
+file(GLOB renderer_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/*.hpp)
+file(GLOB renderer_shader_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Shader/*.hpp)
+file(GLOB renderer_texture_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Texture/*.hpp)
+file(GLOB renderer_shapes_hdrs ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Shapes/*.hpp)
+set(renderer_hdrs 
+        ${renderer_hdrs}
+        ${renderer_shader_hdrs}
+        ${renderer_texture_hdrs}
+        ${renderer_shapes_hdrs})
+
 # Set headers and soruces variables
 set(hdrs 
     ${core_hdrs}
     ${base_hdrs}
     ${anim_hdrs}
+    ${renderer_hdrs}
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Core.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Base/Base.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Animation/Animation.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Renderer.h
 )
 
 set(src 
     ${core_src}
     ${base_src}
+    ${renderer_src}
     ${anim_src}
 )
 
 add_library(${PROJECT_NAME} STATIC ${src} ${hdrs})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(${PROJECT_NAME} PROPERTIES GCC_WARN_64_TO_32_BIT_CONVERSION NO)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${APPLE_FRAMEWORK_DEPS} metal assimp)

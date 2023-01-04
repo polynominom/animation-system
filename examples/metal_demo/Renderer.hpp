@@ -1,10 +1,13 @@
-#pragma once
+#ifndef RENDERER_HPP
+#define RENDERER_HPP
 
 #include <iostream>
 #include <AppKit/AppKit.hpp>
 #include <MetalKit/MetalKit.hpp>
 #include <Metal/Metal.hpp>
-#include "ShaderTypes.hpp"
+#include <Core/Core.h>
+#include <Base/Base.h>
+#include <Renderer/Import.hpp>
 
 namespace AnimationSystem
 {
@@ -63,3 +66,5 @@ namespace AnimationSystem
         uint _animationIndex;
     };
 }
+
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SHADERTYPES_HPP
+#define SHADERTYPES_HPP
+
 #include <simd/simd.h>
 
 namespace AnimationSystem
@@ -12,6 +14,15 @@ namespace AnimationSystem
             simd::float2 texcoord;
         };
 
+        struct UniformData
+        {
+            simd::float4x4 modelMatrix;
+            simd::float4x4 viewMatrix;
+            simd::float4x4 projectionMatrix;
+            //float t;
+            //float lifespan;
+        };
+
         struct InstanceData
         {
             simd::float4x4 instanceTransform;
@@ -21,10 +32,11 @@ namespace AnimationSystem
 
         struct CameraData
         {
-            simd::float4x4 perspectiveTransform;
-            simd::float4x4 worldTransform;
-            simd::float3x3 worldNormalTransform;
+            simd::float4x4 projectionM;
+            simd::float4x4 viewM;
         };
     }
 
 } // namespace AnimationSystem
+
+#endif

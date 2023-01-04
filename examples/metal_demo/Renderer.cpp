@@ -1,8 +1,6 @@
-#include <Renderer.hpp>
-#include <Core/Core.h>
-#include <Base/Base.h>
-#include <Animation/Animation.h>
-#include <Cube.hpp>
+#include "Renderer.hpp"
+#include <Renderer/Shader/ShaderTypes.hpp>
+#include <Renderer/Shapes/Cube.hpp>
 
 namespace AnimationSystem
 {
@@ -10,12 +8,13 @@ namespace AnimationSystem
     {
         // PRIVATE FREE FUNCTIONS
     }
-
     Renderer::Renderer(MTL::Device *device) : _pDevice{device->retain()},
                                               _angle{0.f},
                                               _frame{0},
                                               _animationIndex{0}
     {
+        std::cout << "----> TESTING IMPORTER \n";
+
         _pCommandQueue = _pDevice->newCommandQueue();
         buildShaders();
         std::cout << "----> buildShaders finished \n";
@@ -129,9 +128,8 @@ namespace AnimationSystem
 
         MTL::Buffer *pCameraDataBuffer = _pCameraDataBuffer[_frame];
         ShaderTypes::CameraData *pCameraData = reinterpret_cast<ShaderTypes::CameraData *>(pCameraDataBuffer->contents());
-        pCameraData->perspectiveTransform = Math::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
-        pCameraData->worldTransform = Math::makeIdentity();
-        pCameraData->worldNormalTransform = Math::discardTranslation(pCameraData->worldTransform);
+        pCameraData->projectionM = Math::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
+        pCameraData->viewM = Math::makeIdentity();
         pCameraDataBuffer->didModifyRange(NS::Range::Make(0, sizeof(ShaderTypes::CameraData)));
 
         // update texture
@@ -172,7 +170,7 @@ namespace AnimationSystem
     {
         using NS::StringEncoding::UTF8StringEncoding;
 
-        const std::filesystem::path shaderPath = "./shaders/example_shader.glsl";
+        const std::filesystem::path shaderPath = "./shaders/example_shader.metal";
         auto shaderSrc = Reader<std::string>(shaderPath).read();
         const char *c_shaderSrc = shaderSrc.c_str();
         if (shaderSrc.empty())
@@ -199,6 +197,9 @@ namespace AnimationSystem
         pDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
         pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth16Unorm);
 
+        pVertexFn->release();
+        pFragFn->release();
+
         _pPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pPSO)
         {
@@ -206,8 +207,6 @@ namespace AnimationSystem
             assert(false);
         }
 
-        pVertexFn->release();
-        pFragFn->release();
         pDesc->release();
         _pShaderLibrary = pLibrary;
     }
@@ -217,16 +216,14 @@ namespace AnimationSystem
         MTL::DepthStencilDescriptor *pDsDesc = MTL::DepthStencilDescriptor::alloc()->init();
         pDsDesc->setDepthCompareFunction(MTL::CompareFunction::CompareFunctionLess);
         pDsDesc->setDepthWriteEnabled(true);
-
         _pDepthStencilState = _pDevice->newDepthStencilState(pDsDesc);
-
         pDsDesc->release();
     }
 
     void Renderer::buildBuffers()
     {
         // get uniform cube that has 1/2 size each edge
-        auto cube = Shapes::Cube<1, 2>();
+        auto cube = Shapes::Cube(0.5f);
 
         const size_t vertexDataSize = sizeof(cube.verts);
         const size_t indexDataSize = sizeof(cube.indices);
@@ -256,6 +253,8 @@ namespace AnimationSystem
 
     void Renderer::buildTextures()
     {
+        auto tw = kTextureWidth;
+        auto th = kTextureHeight;
         MTL::TextureDescriptor *pTextureDesc = MTL::TextureDescriptor::alloc()->init();
         pTextureDesc->setWidth(kTextureWidth);
         pTextureDesc->setHeight(kTextureHeight);
@@ -263,9 +262,27 @@ namespace AnimationSystem
         pTextureDesc->setTextureType(MTL::TextureType2D);
         pTextureDesc->setStorageMode(MTL::StorageModeManaged);
         pTextureDesc->setUsage(MTL::ResourceUsageSample | MTL::ResourceUsageRead | MTL::ResourceUsageWrite);
-
         MTL::Texture *pTexture = _pDevice->newTexture(pTextureDesc);
         _pTexture = pTexture;
+
+        uint8_t *pTextureData = (uint8_t *)alloca(tw * th * 4);
+        for (size_t y = 0; y < th; ++y)
+        {
+            for (size_t x = 0; x < tw; ++x)
+            {
+                bool isWhite = (x ^ y) & 0b1000000;
+                uint8_t c = isWhite ? 0xFF : 0xA;
+
+                size_t i = y * tw + x;
+
+                pTextureData[i * 4 + 0] = c;
+                pTextureData[i * 4 + 1] = c;
+                pTextureData[i * 4 + 2] = c;
+                pTextureData[i * 4 + 3] = 0xFF;
+            }
+        }
+
+        _pTexture->replaceRegion(MTL::Region(0, 0, 0, tw, th, 1), 0, pTextureData, tw * 4);
 
         pTextureDesc->release();
     }

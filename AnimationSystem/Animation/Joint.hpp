@@ -13,7 +13,7 @@ namespace AnimationSystem
         [[nodiscard]] const simd::float4x3 getInverseTPose() const noexcept { return _invTPose; }
 
     private:
-        [[no_unique_address]] simd::float4x3 _invTPose; // inverse of the bind pose(i.e., bind pose)
+        [[no_unique_address]] simd::float4x3 _invTPose; // inverse of the T pose(i.e., bind pose)
         uint32_t _parentId;                             // parent id
                                                         // std::string / const char* name?
     };

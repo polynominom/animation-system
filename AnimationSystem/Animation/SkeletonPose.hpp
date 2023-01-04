@@ -14,7 +14,7 @@ namespace AnimationSystem
         SkeletonPose() {}
 
     private:
-        std::unique_ptr<Skeleton> _pSkeleton;
+        std::shared_ptr<Skeleton> _pSkeleton;
         std::vector<JointPose> _localPoses;
         simd::float4x4 _globalPose;
     };

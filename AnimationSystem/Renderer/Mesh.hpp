@@ -8,6 +8,7 @@
 #include <simd/simd.h>
 #include "Shapes/Cube.hpp"
 #include <Animation/SkinnedVertex.hpp>
+#include <Renderer/RendererManager.hpp>
 
 namespace AnimationSystem
 {
@@ -16,11 +17,11 @@ namespace AnimationSystem
     public:
         ~Mesh();
 
-        void buildBuffersFrom(MTL::Device *pDevice, size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices);
-        void buildInstanceBufferFrom(MTL::Device *pDevice, size_t instanceDataSize);
+        void buildBuffersFrom(size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices);
+        //void buildInstanceBufferFrom(size_t instanceDataSize);
 
-        void buildBuffers(MTL::Device *pDevice);
-        void buildInstanceBuffer(MTL::Device *pDevice);
+        void buildBuffers();
+        void buildInstanceBuffer();
 
         [[nodiscard]] ShaderTypes::InstanceData *getInstanceData();
 
@@ -28,7 +29,6 @@ namespace AnimationSystem
         void initSkinnedVertex();
         void addSkinnedVertexWeight(size_t vertexId, size_t jointIndex, float weight);
         void addIndex(uint16_t index);
-        
 
         // static const int kMaxBufferCount{32};
         // Vertex Buffer of the mesh
@@ -39,11 +39,11 @@ namespace AnimationSystem
         MTL::Buffer *pIndexBuffer{nullptr};
         uint64_t numberOfIndices{0};
 
-        MTL::Buffer *pTriangles{nullptr};
-        uint64_t numberOfTriangles{0};
-
-        MTL::Buffer *pInstanceBuffer{nullptr};
-        uint64_t numberOfInstances{0};
+//        MTL::Buffer *pTriangles{nullptr};
+//        uint64_t numberOfTriangles{0};
+//
+//        MTL::Buffer *pInstanceBuffer{nullptr};
+//        uint64_t numberOfInstances{0};
 
     private:
         [[no_unique_address]] std::vector<ShaderTypes::VertexData> _vertexData{};

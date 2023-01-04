@@ -4,30 +4,9 @@
 
 namespace AnimationSystem
 {
-    namespace
-    {
-        // void old()
-        // {
-        //     // add one cube entity with mesh
-        //     auto cube = Shapes::Cube(0.5f);
-        //     Entity cubeEntity;
-        //     cubeEntity.setPosition({0.f, 0.f, -10.f, 1.f});
-
-        //     std::shared_ptr<MeshComponent> m = std::make_shared<MeshComponent>();
-        //     m->mesh = std::make_shared<Mesh>();
-        //     m->mesh->buildInstanceBufferFrom(_pDevice, sizeof(ShaderTypes::InstanceData));
-        //     m->mesh->buildBuffersFrom(_pDevice,
-        //                               sizeof(cube.verts), cube.verts,
-        //                               sizeof(cube.indices), cube.indices);
-
-        //     // add the cube to the scene
-        //     auto c = static_cast<std::shared_ptr<Component>>(m);
-        //     cubeEntity.addComponent(c);
-        //     _scene->entities.push_back(cubeEntity);
-        // }
-    }
     // hold 2-3 frames in memory
     static const int kMaxFrames{3};
+
     MetalRenderer::~MetalRenderer()
     {
         _pTexture->release();
@@ -36,12 +15,15 @@ namespace AnimationSystem
         _pDevice->release();
     }
 
-    MetalRenderer::MetalRenderer(MTL::Device *device) : _pDevice{device->retain()},
-                                                        _frame{0},
+    MetalRenderer::MetalRenderer(MTL::Device *device) : _frame{0},
                                                         _drawIndex{0},
                                                         _animationIndex{0}
     {
+        RendererManager::init(device);
+
+        _pDevice = RendererManager::getDevice();
         _zoom = 0;
+
         _pCommandQueue = _pDevice->newCommandQueue();
         buildShaders();
         std::cout << "----> buildShaders finished \n";
@@ -61,9 +43,9 @@ namespace AnimationSystem
     {
 
         _shaderLibrary = ShaderLibrary{};
-        
+
         const std::filesystem::path shaderPath{COMMON_applPhongShaderPath};
-        AnimationSystem::ShaderResource::load(_pDevice, shaderPath, _shaderLibrary);
+        AnimationSystem::ShaderResource::load(shaderPath, _shaderLibrary);
         MTL::RenderPipelineDescriptor *pDesc = _shaderLibrary.registerPipelineDescriptor(shaderPath);
 
         NS::Error *pError = nullptr;
@@ -101,7 +83,7 @@ namespace AnimationSystem
         MTL::Texture *pTexture = _pDevice->newTexture(pTextureDesc);
         _pTexture = pTexture;
 
-        uint8_t *pTextureData = (uint8_t *)alloca(tw * th * 4);
+        uint8_t *pTextureData = (uint8_t *) alloca(tw * th * 4);
         for (size_t y = 0; y < th; ++y)
         {
             for (size_t x = 0; x < tw; ++x)
@@ -135,16 +117,14 @@ namespace AnimationSystem
         // handle meshes
         for (auto m : meshes)
         {
-            // std::cout << "index: " << index++ << "\n";
             Entity e;
-            e.setPosition({2.f, 4.f, -140.f, 1.f});
-            e.setScale((simd::float4){.5f, .5f, .5f, .5f});
+            e.setPosition({2.f, -22.f, -140.f, 1.f});
+            e.setScale((simd::float4){.5f, .5f, .5f, 1.f});
 
             std::shared_ptr<MeshComponent> meshComp = std::make_shared<MeshComponent>();
 
             meshComp->mesh = std::move(m);
-            meshComp->mesh->buildBuffers(_pDevice);
-            meshComp->mesh->buildInstanceBuffer(_pDevice);
+            meshComp->mesh->buildBuffers();
             auto c = static_cast<std::shared_ptr<Component>>(meshComp);
             e.addComponent(c);
             _scene->entities.push_back(e);
@@ -155,9 +135,7 @@ namespace AnimationSystem
         cubeEntity.setScale((simd::float4){0.5f, 0.5f, 0.5f, 1.f});
         std::shared_ptr<MeshComponent> m = std::make_shared<MeshComponent>();
         m->mesh = std::make_shared<Mesh>();
-        m->mesh->buildInstanceBufferFrom(_pDevice, sizeof(ShaderTypes::InstanceData));
-        m->mesh->buildBuffersFrom(_pDevice,
-                                  sizeof(cube.verts), cube.verts,
+        m->mesh->buildBuffersFrom(sizeof(cube.verts), cube.verts,
                                   sizeof(cube.indices), cube.indices);
 
         // add the cube to the scene
@@ -167,18 +145,17 @@ namespace AnimationSystem
 
         // build camera
         _scene->camera = std::make_shared<Camera>();
-        _scene->camera->initData({.0,.0,-10.f});
-        
+        _scene->camera->initData({.0, .0, -10.f});
+
         // build uniform buffer
         _pUniformBuffer = _pDevice->newBuffer(sizeof(ShaderTypes::UniformData), MTL::ResourceStorageModeManaged);
-        
-        //_pTextureAnimationBuffer = _pDevice->newBuffer(sizeof(uint), MTL::ResourceStorageModeManaged);
     }
 
     void MetalRenderer::draw(MTK::View *pView)
     {
         NS::AutoreleasePool *pPool = NS::AutoreleasePool::alloc()->init();
         _scene->camera->updateData();
+        
         // render entities that has mesh components.
         MetalRenderer *pRenderer = this;
         // complete handler
@@ -192,45 +169,36 @@ namespace AnimationSystem
         size_t entityIndex = 0;
         for (auto &ent : _scene->filterEntities("MeshComponent"))
         {
-
             auto meshComp = std::dynamic_pointer_cast<MeshComponent>(ent.getComponent("MeshComponent"));
-            // INSTANCE MANIPULATION
-            ShaderTypes::InstanceData *pInstanceData = meshComp->mesh->getInstanceData();
 
             // MATRIX MULTIPLICATIONS FOR ROTATION, POSITION, SCALE
-            auto scale = Math::scale(ent.getScale().xyz);
-            // ent.setPosition({ent.getPosition().x, ent.getPosition().y, ent.getPosition().z + _zoom});
-            // std::cout << "p.x: " << ent.getPosition().x << " p.y: " << ent.getPosition().y << " p.z: " << ent.getPosition().z << std::endl;
-            auto translate = Math::translate(Math::add(ent.getPosition().xyz, {0., 0., 0.0}));
-            pInstanceData->instanceTransform = Math::makeIdentity() * translate * scale;
-            //pInstanceData->instanceNormalTransform = Math::discardTranslation(pInstanceData->instanceTransform);
-            //pInstanceData->instanceColor = (simd::float4){0.65, 0.4, 0.1f, 1.f};
-            meshComp->mesh->pInstanceBuffer->didModifyRange(NS::Range::Make(0, meshComp->mesh->pInstanceBuffer->length()));
-
+            auto scale = Math::scale({0.4,0.4,0.4});
+            auto translate = Math::translate(Math::add(ent.getPosition().xyz, {0., -14., 0.0}));
+            simd::float4x4 worldM = Math::rotateX(30*M_PI/180) * translate * scale;
+            
+            BufferHelper::updateUniformBuffer(_pUniformBuffer, _scene->camera->data(), worldM);
+            
             // Begin render pass:
             MTL::RenderPassDescriptor *pRpd = pView->currentRenderPassDescriptor();
+            
+            // Change load action to prevent fleckiring.
             auto loadAction = (entityIndex == 0) ? MTL::LoadActionClear : MTL::LoadActionLoad;
             pRpd->colorAttachments()->object(0)->setLoadAction(loadAction);
-            //  pRpd->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(0.100, 0.100, 0.100, 1));
-            
-            BufferHelper::updateUniformBuffer(_pUniformBuffer, _scene->camera->data(), pInstanceData->instanceTransform);
             
             MTL::RenderCommandEncoder *pEnc = pCmd->renderCommandEncoder(pRpd);
             pEnc->setRenderPipelineState(_pPSO);
             pEnc->setDepthStencilState(_pDepthStencilState);
             pEnc->setVertexBuffer(meshComp->mesh->pVertexBuffer, /* offset */ 0, /* index */ 0);
-            //pEnc->setVertexBuffer(meshComp->mesh->pInstanceBuffer, /* offset */ 0, /* index */ 1);
             pEnc->setVertexBuffer(_pUniformBuffer, /* offset */ 0, /* index */ 1);
-
             pEnc->setFragmentTexture(_pTexture, /* index */ 0);
-
             pEnc->setCullMode(MTL::CullModeBack);
             pEnc->setFrontFacingWinding(MTL::Winding::WindingCounterClockwise);
 
             pEnc->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle,
-                                        meshComp->mesh->numberOfIndices, MTL::IndexType::IndexTypeUInt16,
+                                        meshComp->mesh->numberOfIndices,
+                                        MTL::IndexType::IndexTypeUInt16,
                                         meshComp->mesh->pIndexBuffer, 0, 1);
-
+            
             pEnc->endEncoding();
             pView->clearDepth();
 

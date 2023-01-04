@@ -73,11 +73,8 @@ namespace AnimationSystem
                     for(size_t wi = 0; wi < joint->mNumWeights; ++wi )
                     {
                         m->addSkinnedVertexWeight(joint->mWeights[wi].mVertexId, ji, joint->mWeights[wi].mWeight);
-                        // seems like more 4 joints effecting one vertex.
                     }
                 }
-                // jointIndex
-                
             }
 
             return m;

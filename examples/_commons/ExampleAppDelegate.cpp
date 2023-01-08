@@ -76,7 +76,7 @@ namespace AnimationSystem
             NS::WindowStyleMaskClosable | NS::WindowStyleMaskTitled,
             NS::BackingStoreBuffered,
             false);
-
+        
         _pDevice = MTL::CreateSystemDefaultDevice();
 
         _pMtkView = MTK::View::alloc()->init(frame, _pDevice);

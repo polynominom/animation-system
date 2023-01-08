@@ -1,6 +1,7 @@
 #include "MetalRenderer.hpp"
 #include <Core/CommonConsts.hpp>
 #include <Renderer/BufferHelper.hpp>
+#include <sys/time.h>
 
 namespace AnimationSystem
 {
@@ -16,6 +17,7 @@ namespace AnimationSystem
     }
 
     MetalRenderer::MetalRenderer(MTL::Device *device) : _frame{0},
+                                                        _angle{0.0f},
                                                         _drawIndex{0},
                                                         _animationIndex{0}
     {
@@ -118,7 +120,7 @@ namespace AnimationSystem
         for (auto m : meshes)
         {
             Entity e;
-            e.setPosition({2.f, -22.f, -140.f, 1.f});
+            e.setPosition({2.f, -2.f, -140.f, 1.f});
             e.setScale((simd::float4){.5f, .5f, .5f, 1.f});
 
             std::shared_ptr<MeshComponent> meshComp = std::make_shared<MeshComponent>();
@@ -129,20 +131,7 @@ namespace AnimationSystem
             e.addComponent(c);
             _scene->entities.push_back(e);
         }
-
-        Entity cubeEntity;
-        cubeEntity.setPosition({0.f, -3.f, -40.f, 1.f});
-        cubeEntity.setScale((simd::float4){0.5f, 0.5f, 0.5f, 1.f});
-        std::shared_ptr<MeshComponent> m = std::make_shared<MeshComponent>();
-        m->mesh = std::make_shared<Mesh>();
-        m->mesh->buildBuffersFrom(sizeof(cube.verts), cube.verts,
-                                  sizeof(cube.indices), cube.indices);
-
-        // add the cube to the scene
-        auto c = static_cast<std::shared_ptr<Component>>(m);
-        cubeEntity.addComponent(c);
-        _scene->entities.push_back(cubeEntity);
-
+        
         // build camera
         _scene->camera = std::make_shared<Camera>();
         _scene->camera->initData({.0, .0, -10.f});
@@ -167,14 +156,25 @@ namespace AnimationSystem
 
         pCmd->addCompletedHandler(drawCallback);
         size_t entityIndex = 0;
+        _angle += 0.02f;
+        simd::float4x4 rr1 = Math::rotateY(-11);
+        simd::float4x4 rr0 = Math::rotateX(6);
+        
+        long long timeMs = RendererManager::getCurrentTime();
+        float timeInSec = ((float)(timeMs - RendererManager::getStartTime())) / 1000.0f;
+        
         for (auto &ent : _scene->filterEntities("MeshComponent"))
         {
             auto meshComp = std::dynamic_pointer_cast<MeshComponent>(ent.getComponent("MeshComponent"));
-
+            
             // MATRIX MULTIPLICATIONS FOR ROTATION, POSITION, SCALE
-            auto scale = Math::scale({0.4,0.4,0.4});
-            auto translate = Math::translate(Math::add(ent.getPosition().xyz, {0., -14., 0.0}));
-            simd::float4x4 worldM = Math::rotateX(30*M_PI/180) * translate * scale;
+            //std::cout << "x: "<<ent.getScale().x << ", y" << ent.getScale().y << ", Z: "<<ent.getScale().z<<std::endl;
+            auto scale = Math::scale({ent.getScale().x,ent.getScale().y,ent.getScale().z});
+            auto objectPosition = Math::add(ent.getPosition().xyz, {0., -14., 0.0});
+        
+            simd::float4x4 rt = Math::translate(objectPosition);
+            simd::float4x4 rtInv = Math::translate({-objectPosition.x, -objectPosition.y, -objectPosition.z});
+            simd::float4x4 worldM = rt * rr1 * rr0 * scale;
             
             BufferHelper::updateUniformBuffer(_pUniformBuffer, _scene->camera->data(), worldM);
             
@@ -190,6 +190,7 @@ namespace AnimationSystem
             pEnc->setDepthStencilState(_pDepthStencilState);
             pEnc->setVertexBuffer(meshComp->mesh->pVertexBuffer, /* offset */ 0, /* index */ 0);
             pEnc->setVertexBuffer(_pUniformBuffer, /* offset */ 0, /* index */ 1);
+            pEnc->setVertexBuffer(meshComp->mesh->pJointBuffer, /* offset */ 0, /* index */ 2);
             pEnc->setFragmentTexture(_pTexture, /* index */ 0);
             pEnc->setCullMode(MTL::CullModeBack);
             pEnc->setFrontFacingWinding(MTL::Winding::WindingCounterClockwise);

@@ -7,14 +7,19 @@
 
 namespace AnimationSystem
 {
+
+
     class RendererManager
     {
     public:
         static void init(MTL::Device *_pDevice);
         static MTL::Device *getDevice();
+        [[nodiscard]] static long long getStartTime();
+        [[nodiscard]] static long long getCurrentTime();
 
     private:
         static MTL::Device *_pDevice;
+        static long long _startTimeMs;
     };
 
 } // namespace AnimationSystem

@@ -1,4 +1,7 @@
 #include "Import.hpp"
+#include <algorithm>
+#include <Base/Math.hpp>
+
 #define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded)
 
 #define MAX_NUM_BONES_PER_VERTEX 4
@@ -7,11 +10,12 @@
 //  aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded
 // ai_scene = aiApplyPostProcessing(ai_scene, aiProcess_FixInfacingNormals | aiProcess_MakeLeftHanded);
 
+
 namespace AnimationSystem
 {
     namespace
     {
-        std::shared_ptr<Mesh> assimpToMesh(const aiMesh *assimpMesh)
+        std::shared_ptr<Mesh> assimpToMesh(const aiMesh *assimpMesh, const aiScene *pScene)
         {
             auto m = std::make_shared<Mesh>();
 
@@ -67,16 +71,44 @@ namespace AnimationSystem
             if (assimpMesh->HasBones())
             {
                 m->initSkinnedVertex();
+                
+                std::shared_ptr<SkeletonPose> skeletonPose = std::make_shared<SkeletonPose>(pScene);
+                
+                std::vector<std::shared_ptr<Joint>> jointsTest;
+                
                 for(size_t ji = 0; ji < assimpMesh->mNumBones; ++ji)
                 {
-                    auto joint =assimpMesh->mBones[ji];
-                    for(size_t wi = 0; wi < joint->mNumWeights; ++wi )
+                    //std::cout << "ji:"<<ji<<"\n";
+                    auto assimpBone = assimpMesh->mBones[ji];
+                    if( !assimpBone )
+                        continue;
+                    
+                    // create joint with name
+                    std::shared_ptr<Joint> j = std::make_shared<Joint>(assimpBone->mName.C_Str());
+                    skeletonPose->addJointName(j->getName(), ji);
+                    
+                    // Get And Set inverse of the T Pose
+                    auto invTPose = Math::convertAssimpM(assimpBone->mOffsetMatrix);
+                    j->setInvTPose(invTPose);
+                    
+                    // get vertex id and weights that the joint influences.
+                    for(size_t wi = 0; wi < assimpBone->mNumWeights; ++wi )
                     {
-                        m->addSkinnedVertexWeight(joint->mWeights[wi].mVertexId, ji, joint->mWeights[wi].mWeight);
+                        m->addSkinnedVertexWeight(assimpBone->mWeights[wi].mVertexId, ji, assimpBone->mWeights[wi].mWeight);
                     }
+                    
+                    // update skeleton
+                    jointsTest.push_back(std::move(j));
+                    //pSkeleton->addJoint(j);
                 }
+                skeletonPose->getSkeleton()->setJoints(std::move(jointsTest));
+                // adding joint is done. Now initialize the global poses
+                skeletonPose->initGlobalPoses();
+                m->setSkeletonPose(skeletonPose);
+                m->getSkeletonPose()->computeGlobalPosesFromAssimp(0.0, pScene);
+                m->getSkeletonPose()->compFinalTransformations();
+                //m->skin();
             }
-
             return m;
         }
 
@@ -87,7 +119,7 @@ namespace AnimationSystem
             {
                 std::cout << "1. Getting MESH ID " << i << "\n";
                 const aiMesh *pmesh = pScene->mMeshes[i];
-                meshes.push_back(assimpToMesh(pmesh));
+                meshes.push_back(assimpToMesh(pmesh, pScene));
             }
 
             return meshes;
@@ -113,7 +145,7 @@ namespace AnimationSystem
                       << "\n";
             return {};
         }
-
+        
         return parseMeshes(pScene);
     }
 } // namespace AnimationSystem

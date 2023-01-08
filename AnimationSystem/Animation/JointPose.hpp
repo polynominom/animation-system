@@ -8,10 +8,10 @@ namespace AnimationSystem
 {
     class JointPose
     {
-    private:
+    public:
         Base::Quaternion _rotation{0, 0, 0, 0};
-        simd::float4 _translation;
-        simd::float4 _scale;
+        simd::float3 _translation;
+        float _scale; // uniform sclae only
     };
 } // namespace AnimationSystem
 

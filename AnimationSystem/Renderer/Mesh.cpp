@@ -13,6 +13,7 @@ namespace AnimationSystem
             buffer->didModifyRange(NS::Range::Make(0, buffer->length()));
         }
     }
+
     std::string MeshComponent::getName() noexcept
     {
         return "MeshComponent";
@@ -26,26 +27,45 @@ namespace AnimationSystem
 
     void Mesh::buildBuffers()
     {
-        size_t vertexDataSize = sizeof(ShaderTypes::VertexData) * this->_vertexData.size();
+        size_t vertexDataSize = sizeof(ShaderTypes::SkinnedVertexData) * this->_skinnedVertices.size();
         size_t indexDataSize = sizeof(uint16_t) * this->_indexData.size();
+        size_t jointDataSize = sizeof(ShaderTypes::JointGlobalPoseData) * this->getSkeletonPose()->getSkeleton()->jointCount();
+        size_t simd_jointDataSize = sizeof(simd::float4x4) * this->getSkeletonPose()->getSkeleton()->jointCount();
+        
+//        std::cout <<"buildBuffers for mesh... \n";
+//        std::cout <<"-- vertexDataSize: " << vertexDataSize<<"\n";
+//        std::cout <<"-- indexDataSize: " << indexDataSize<<"\n";
+//        std::cout <<"-- jointDataSize: " << jointDataSize<<"\n";
+//        std::cout <<"-- simd_jointDataSize: " << simd_jointDataSize<<"\n";
 
         this->pVertexBuffer = RendererManager::getDevice()->newBuffer(vertexDataSize, MTL::ResourceStorageModeManaged);
         this->pIndexBuffer = RendererManager::getDevice()->newBuffer(indexDataSize, MTL::ResourceStorageModeManaged);
+        this->pJointBuffer = RendererManager::getDevice()->newBuffer(jointDataSize, MTL::ResourceStorageModeManaged);
 
-        copyAndUpdateBuffer(this->pVertexBuffer, this->_vertexData.data(), vertexDataSize);
+        copyAndUpdateBuffer(this->pVertexBuffer, this->_skinnedVertices.data(), vertexDataSize);
         copyAndUpdateBuffer(this->pIndexBuffer, this->_indexData.data(), indexDataSize);
+        
+        auto transforms = this->getSkeletonPose()->getFinalTransformations();
+        //copyAndUpdateBuffer(this->pJointBuffer, transforms.data(), vertexDataSize);
+        memcpy(this->pJointBuffer->contents(), transforms.data(), jointDataSize);
+        this->pJointBuffer->didModifyRange(NS::Range::Make(0, this->pJointBuffer->length()));
     }
 
-    void Mesh::buildBuffersFrom(size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices)
+//    void Mesh::buildBuffersFrom(size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices)
+//    {
+//        this->numberOfVertices = vertexDataSize / sizeof(ShaderTypes::VertexData);
+//        this->numberOfIndices = indexDataSize / sizeof(uint16_t);
+//
+//        this->pVertexBuffer = RendererManager::getDevice()->newBuffer(vertexDataSize, MTL::ResourceStorageModeManaged);
+//        this->pIndexBuffer = RendererManager::getDevice()->newBuffer(indexDataSize, MTL::ResourceStorageModeManaged);
+//
+//        copyAndUpdateBuffer(this->pVertexBuffer, vertexDataArr, vertexDataSize);
+//        copyAndUpdateBuffer(this->pIndexBuffer, indices, indexDataSize);
+//    }
+
+    void Mesh::skin()
     {
-        this->numberOfVertices = vertexDataSize / sizeof(ShaderTypes::VertexData);
-        this->numberOfIndices = indexDataSize / sizeof(uint16_t);
-
-        this->pVertexBuffer = RendererManager::getDevice()->newBuffer(vertexDataSize, MTL::ResourceStorageModeManaged);
-        this->pIndexBuffer = RendererManager::getDevice()->newBuffer(indexDataSize, MTL::ResourceStorageModeManaged);
-
-        copyAndUpdateBuffer(this->pVertexBuffer, vertexDataArr, vertexDataSize);
-        copyAndUpdateBuffer(this->pIndexBuffer, indices, indexDataSize);
+        // copyAndUpdateBuffer(this->pVertexBuffer, this->_vertexData.data(), vertexDataSize);
     }
 
 //    void Mesh::buildInstanceBuffer()
@@ -75,6 +95,7 @@ namespace AnimationSystem
     void Mesh::initSkinnedVertex()
     {
         _skinnedVertices.resize(_vertexData.size());
+// TODO: consider parallel:
 #pragma omp parallel for
         for (int i = 0; i < _vertexData.size(); ++i)
         {
@@ -116,8 +137,7 @@ namespace AnimationSystem
         // 4th weight,
         if (v._jointIndex[3] == -1)
         {
-            v._jointWeights.z = weight;
-            v._jointIndex.z = jointIndex;
+            v._jointIndex.w = jointIndex;
         }
     }
 

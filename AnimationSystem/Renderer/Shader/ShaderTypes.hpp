@@ -7,6 +7,20 @@ namespace AnimationSystem
 {
     namespace ShaderTypes
     {
+        struct SkinnedVertexData
+        {
+            simd::float3 position;
+            simd::float3 normal;
+            simd::float2 texcoord;
+            simd::float3 _jointWeights{0.f,0.f,0.f};
+            simd::int4 _jointIndex{-1,-1,-1,-1};
+        };
+    
+        struct JointGlobalPoseData
+        {
+            simd::float4x4 globalPose;
+        };
+    
         struct VertexData
         {
             simd::float3 position;

@@ -63,6 +63,7 @@ namespace AnimationSystem
         dispatch_semaphore_t _semaphore;
         uint _animationIndex;
         float _zoom;
+        float _angle;
 
         size_t _drawIndex;
     };

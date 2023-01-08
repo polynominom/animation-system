@@ -3,6 +3,7 @@
 
 #include <simd/simd.h>
 #include <math.h>
+#include <assimp/postprocess.h>
 
 namespace AnimationSystem
 {
@@ -18,6 +19,10 @@ namespace AnimationSystem
         static simd::float4x4 translate(const simd::float3 &v);
         static simd::float4x4 scale(const simd::float3 &v);
         static simd::float3x3 discardTranslation(const simd::float4x4 &m);
-    };
+        // convertions
+        static simd::float4x4 convertAssimpM(const aiMatrix4x4 from);
+        static simd::float4x4 convertAssimpMt(const aiMatrix4x4t<float>& from);
+        static simd::float3 convertAssimpV(const aiVector3D& from);
+        };
 } // namespace AnimationSystem
 #endif

@@ -2,8 +2,9 @@
 
 namespace AnimationSystem
 {
-    CoreTestViewDelegate::CoreTestViewDelegate(MTL::Device *pDevice) : MTK::ViewDelegate(), _pRenderer(new MetalRenderer(pDevice))
+    CoreTestViewDelegate::CoreTestViewDelegate(MTL::Device *pDevice) : MTK::ViewDelegate()
     {
+        _pRenderer = new MetalRenderer(pDevice);
     }
     CoreTestViewDelegate::~CoreTestViewDelegate()
     {

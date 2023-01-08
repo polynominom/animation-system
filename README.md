@@ -34,12 +34,11 @@ Core Tasks:
 
 - [x] Examples
 - [x] Basic components (Quaternions, Skeleton, Joints, Animation Clips, etc...)
-- [ ] Camera and perspective
-- [ ] Resource handling
-- [ ] Mesh loading and rendering
+- [x] Camera and perspective
+- [x] Mesh loading and rendering
 - [ ] Scene
-- [ ] Entity Component System
 - [ ] Implement simple 1D BlendTree
 - [ ] Extend 2D BlendTree
 - [ ] Implement Skeleton Mesh and Animation parsing
 - [ ] Implement InverseKinematic
+- [ ] Entity Component System

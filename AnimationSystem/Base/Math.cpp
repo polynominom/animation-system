@@ -1,8 +1,30 @@
 #include "Math.hpp"
 
+
 namespace AnimationSystem
 {
     using simd::float4;
+
+    simd::float3 Math::convertAssimpV(const aiVector3D& from)
+    {
+        return simd_make_float3(from.x, from.y, from.z);
+    }
+    
+    simd::float4x4 Math::convertAssimpMt(const aiMatrix4x4t<float>& from)
+    {
+        return simd_matrix_from_rows(simd_make_float4(from.a1, from.a2, from.a3, from.a4),
+                              simd_make_float4(from.b1, from.b2, from.b3, from.b4),
+                              simd_make_float4(from.c1, from.c2, from.c3, from.c4),
+                              simd_make_float4(from.d1, from.d2, from.d3, from.d4));
+    }
+
+    simd::float4x4 Math::convertAssimpM(const aiMatrix4x4 from)
+    {
+        return simd_matrix_from_rows(simd_make_float4(from.a1, from.a2, from.a3, from.a4),
+                              simd_make_float4(from.b1, from.b2, from.b3, from.b4),
+                              simd_make_float4(from.c1, from.c2, from.c3, from.c4),
+                              simd_make_float4(from.d1, from.d2, from.d3, from.d4));
+    }
 
     simd::float3 Math::add(const simd::float3 &a, const simd::float3 &b)
     {

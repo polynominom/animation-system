@@ -7,44 +7,54 @@
 #include "Shader/ShaderTypes.hpp"
 #include <simd/simd.h>
 #include "Shapes/Cube.hpp"
+#include <Animation/SkinnedVertex.hpp>
+#include <Animation/SkeletonPose.hpp>
+#include <Renderer/RendererManager.hpp>
+
+#include <unordered_map>
 
 namespace AnimationSystem
 {
+// static const int kMaxBufferCount{32};
     class Mesh
-    {
+{
     public:
         ~Mesh();
-
-        void buildBuffersFrom(MTL::Device *pDevice, size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices);
-        void buildInstanceBufferFrom(MTL::Device *pDevice, size_t instanceDataSize);
-
-        void buildBuffers(MTL::Device *pDevice);
-        void buildInstanceBuffer(MTL::Device *pDevice);
-
-        [[nodiscard]] ShaderTypes::InstanceData *getInstanceData();
-
+        void initSkinnedVertex();
+    
+//        void buildBuffersFrom(size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices);
+        //void buildInstanceBufferFrom(size_t instanceDataSize);
+        void buildBuffers();
+        void buildInstanceBuffer();
+        
         void addVertex(simd::float3 position, simd::float3 normal, simd::float2 texcoord);
         void addIndex(uint16_t index);
-        void hebele();
-
-        // static const int kMaxBufferCount{32};
+        void addSkinnedVertexWeight(size_t vertexId, size_t jointIndex, float weight);
+    
+        void setSkeletonPose(std::shared_ptr<SkeletonPose> pose){_animSkeletonPose = pose;}
+        [[nodiscard]] SkeletonPose* getSkeletonPose(){return _animSkeletonPose.get();}
+        /*
+         Applies skinning to the effected vertices. And updates the vertex buffer.
+         */
+        void skin();
+        
         // Vertex Buffer of the mesh
         MTL::Buffer *pVertexBuffer{nullptr};
         uint64_t numberOfVertices{0};
-
+        
         // Index buffer of the mesh
         MTL::Buffer *pIndexBuffer{nullptr};
         uint64_t numberOfIndices{0};
-
-        MTL::Buffer *pTriangles{nullptr};
-        uint64_t numberOfTriangles{0};
-
-        MTL::Buffer *pInstanceBuffer{nullptr};
-        uint64_t numberOfInstances{0};
-
+    
+        MTL::Buffer *pJointBuffer{nullptr};
+        uint64_t jointCount{0};
+        
     private:
-        [[no_unique_address]] std::vector<ShaderTypes::VertexData> _verexData{};
-        [[no_unique_address]] std::vector<uint16_t> _indexData{};
+        std::vector<ShaderTypes::VertexData> _vertexData{};
+        std::vector<SkinnedVertex> _skinnedVertices{};
+        std::vector<uint16_t> _indexData{};
+        std::shared_ptr<SkeletonPose> _animSkeletonPose;
+        
         // bounding box points TODO: calculate when building mesh?
         simd::float3 _bbMin;
         simd::float3 _bbMax;

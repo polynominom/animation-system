@@ -28,9 +28,9 @@ namespace AnimationSystem
         std::shared_ptr<Component> getComponent(std::string name);
 
     private:
-        [[no_unique_address]] Base::Quaternion _rotation{0., 0., 0., 1.};
-        [[no_unique_address]] simd::float4 _position;
-        [[no_unique_address]] simd::float4 _scale;
+        Base::Quaternion _rotation{0., 0., 0., 1.};
+        simd::float4 _position;
+        simd::float4 _scale;
         std::vector<std::shared_ptr<Component>> _components{};
     };
 } // namespace AnimationSystem

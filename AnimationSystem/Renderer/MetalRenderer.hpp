@@ -12,6 +12,7 @@
 #include <Renderer/Scene.hpp>
 #include <Renderer/Mesh.hpp>
 #include <Renderer/Import.hpp>
+#include <Renderer/RendererManager.hpp>
 
 #include <vector>
 #include <iostream>
@@ -22,9 +23,9 @@ namespace AnimationSystem
     class MetalRenderer
     {
     public:
-        MetalRenderer(MTL::Device *pDevice);
-        MetalRenderer(MTL::Device *pDevice, std::vector<Entity> entities);
+        MetalRenderer(MTL::Device *device);
         ~MetalRenderer();
+        MTL::Device *getDevice();
         void buildShaders();
         void buildComputePipeline();
         void buildEntities();
@@ -51,7 +52,7 @@ namespace AnimationSystem
 
         // Texture
         MTL::Texture *_pTexture;
-        
+
         // uniform buffer
         MTL::Buffer *_pUniformBuffer;
 
@@ -62,6 +63,7 @@ namespace AnimationSystem
         dispatch_semaphore_t _semaphore;
         uint _animationIndex;
         float _zoom;
+        float _angle;
 
         size_t _drawIndex;
     };

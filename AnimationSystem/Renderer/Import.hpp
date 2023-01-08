@@ -8,9 +8,12 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <Renderer/Shader/ShaderTypes.hpp>
+#include <Animation/Skeleton.hpp>
+
 
 #include <iostream>
 #include <memory>
+
 
 namespace AnimationSystem
 {

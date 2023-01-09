@@ -1,6 +1,6 @@
 # animation-system
 
-[WIP] A from scracth animation system that uses apple's metal framework.
+[WIP] A from scratch animation system that uses apple's metal framework.
 
 Required: macOS 13 or above.
 
@@ -9,10 +9,10 @@ Running example:
 ```terminal
 mkdir build
 cd build
-cmake ..
-cmake --build
+cmake .. # or cmake .. -G "Xcode" if you want to create a xcode project.
+cmake --build .
 cd ./example/metal_demo
-.metal_example
+./metal_example
 ```
 
 Output should be looking like this(it is important to run the example in `metal_demo` folder):

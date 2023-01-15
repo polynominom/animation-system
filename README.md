@@ -17,7 +17,7 @@ cmake --build .
 Output should be looking like this:
 [![Watch the video](https://i.imgur.com/vKb2F1B.png)](docs/CharacterAnimation.mov)
 <br>
-<img src="docs/CharacterAnimation.mov" width="300">
+<video src="docs/CharacterAnimation.mov" width="300">
 
 Running example for simple manbroot animation with instancing:
 

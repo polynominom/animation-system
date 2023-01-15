@@ -14,10 +14,10 @@ namespace AnimationSystem
         simd::float3 _position;
         simd::float3 _normal;
         simd::float2 _texCoord;
-        // Weights of each bounded joint (last one is omitted due to they all sum up to 1).
-        simd::float3 _jointWeights{0.f,0.f,0.f};
+        // Weights of each bounded joint.
+        simd::float4 _jointWeights{0.f,0.f,0.f, 0.f};
         // One vertex can bounded up to 4 joint.
-        simd::int4 _jointIndex{-1,-1,-1,-1};
+        simd::uint4 _jointIndex{0,0,0,0};
     };
 } // namespace AnimationSystem
 

@@ -42,7 +42,7 @@ namespace AnimationSystem
             // convert assimp vector to simd vector.
             return {r.x, r.y, r.z};
         }
-    
+     
     }
 
     simd::float3 AssimpAnimationHandler::lerpScale(float timeTick, const aiNodeAnim *pNodeAnim)
@@ -116,7 +116,8 @@ namespace AnimationSystem
         return nullptr;
     }
 
-    void AssimpAnimationHandler::readNodeHierarchy(float timeTick, const aiScene* pScene, const aiNode* pNode, const simd::float4x4& parentTransform)
+/*
+    void _readNodeHierarchy(float timeTick, const aiScene* pScene, const aiNode* pNode, const simd::float4x4& parentTransform)
     {
         std::string nodeName(pNode->mName.data);
         // TODO: change the animation index and handle multiple animations
@@ -145,22 +146,7 @@ namespace AnimationSystem
             readNodeHierarchy(timeTick, pScene, pNode->mChildren[i], globalTrans);
         }
     }
+ */
 
-    void AssimpAnimationHandler::computeGlobalPoses(float timeInSec, const aiScene *pScene)
-    {
-        //Assimp::Importer Importer;
-        //const aiScene *pScene = Importer.ReadFile(COMMON_dudeFBXPath.data(), ASSIMP_LOAD_FLAGS_ANIM_HANDLER);
-        
-        auto m = Math::makeIdentity();
-        auto t = pScene->mAnimations[0]->mTicksPerSecond;
-        float tickPerSecond = (float) t != 0 ? t:25.0f;
-        float timeTick = timeInSec * tickPerSecond;
-        timeTick = fmod(timeTick, (float)pScene->mAnimations[0]->mDuration);
-        
-        // read root node
-        readNodeHierarchy(timeTick, pScene, pScene->mRootNode, m);
-        
-        // _pose->updateGlobalPose(0, Math::makeIdentity());
-    }
 
 } // namespace AnimationSystem

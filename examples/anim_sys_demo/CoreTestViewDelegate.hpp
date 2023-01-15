@@ -1,22 +1,24 @@
 #ifndef CORETEST_HPP
 #define CORETEST_HPP
 
-#include <Renderer/Renderer.h>
+#include <AnimationSystem.hpp>
 #include <AppKit/AppKit.hpp>
 #include <MetalKit/MetalKit.hpp>
 #include <Metal/Metal.hpp>
 
-namespace AnimationSystem
+namespace Example
 {
+
     class CoreTestViewDelegate : public MTK::ViewDelegate
     {
     public:
         CoreTestViewDelegate(MTL::Device *pDevice);
+        
         virtual ~CoreTestViewDelegate() override;
         virtual void drawInMTKView(MTK::View *pView) override;
 
     private:
-        MetalRenderer *_pRenderer;
+        AnimationSystem::AnimationSystem *_pAnimSystem;
     };
 
 } // namespace AnimationSystem

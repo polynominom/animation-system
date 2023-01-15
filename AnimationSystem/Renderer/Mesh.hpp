@@ -25,11 +25,12 @@ namespace AnimationSystem
 //        void buildBuffersFrom(size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices);
         //void buildInstanceBufferFrom(size_t instanceDataSize);
         void buildBuffers();
+        void updateJointBuffer();
         void buildInstanceBuffer();
         
         void addVertex(simd::float3 position, simd::float3 normal, simd::float2 texcoord);
         void addIndex(uint16_t index);
-        void addSkinnedVertexWeight(size_t vertexId, size_t jointIndex, float weight);
+        void addSkinnedVertexWeight(size_t vertexId, int jointIndex, float weight);
     
         void setSkeletonPose(std::shared_ptr<SkeletonPose> pose){_animSkeletonPose = pose;}
         [[nodiscard]] SkeletonPose* getSkeletonPose(){return _animSkeletonPose.get();}

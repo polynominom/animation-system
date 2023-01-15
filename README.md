@@ -4,7 +4,20 @@
 
 Required: macOS 13 or above.
 
-Running example:
+Running 3d character animation example
+
+```terminal
+mkdir build
+cd build
+cmake .. # or cmake .. -G "Xcode" if you want to create a xcode project.
+cmake --build .
+./examples/anim_sys_demo/anim_sys_example
+```
+
+Output should be looking like this:
+<img src="docs/CharacterAnimation.gif" width="300">
+
+Running example for simple manbroot animation with instancing:
 
 ```terminal
 mkdir build
@@ -32,11 +45,6 @@ Output example should be looking like this:
 
 Core Tasks:
 
-- [x] Examples
-- [x] Basic components (Quaternions, Skeleton, Joints, Animation Clips, etc...)
-- [x] Camera and perspective
-- [x] Mesh loading and rendering
-- [ ] Scene
 - [ ] Implement simple 1D BlendTree
 - [ ] Extend 2D BlendTree
 - [ ] Implement Skeleton Mesh and Animation parsing

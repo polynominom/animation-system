@@ -58,6 +58,7 @@ set(renderer_hdrs
 
 # Set headers and soruces variables
 set(hdrs 
+    ${CMAKE_CURRENT_SOURCE_DIR}/AnimationSystem.hpp
     ${core_hdrs}
     ${base_hdrs}
     ${anim_hdrs}
@@ -69,6 +70,7 @@ set(hdrs
 )
 
 set(src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/AnimationSystem.cpp
     ${core_src}
     ${base_src}
     ${renderer_src}

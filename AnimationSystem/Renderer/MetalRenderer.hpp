@@ -13,6 +13,8 @@
 #include <Renderer/Mesh.hpp>
 #include <Renderer/Import.hpp>
 #include <Renderer/RendererManager.hpp>
+#include <Renderer/MetalFrameDebugger.hpp>
+#include <Animation/Manager.hpp>
 
 #include <vector>
 #include <iostream>
@@ -23,7 +25,7 @@ namespace AnimationSystem
     class MetalRenderer
     {
     public:
-        MetalRenderer(MTL::Device *device);
+        MetalRenderer(MTL::Device *device, std::shared_ptr<ResourceManager> resourceManager);
         ~MetalRenderer();
         MTL::Device *getDevice();
         void buildShaders();
@@ -58,14 +60,14 @@ namespace AnimationSystem
 
         // scene
         std::shared_ptr<Scene> _scene;
-
-        int _frame;
+        
+        // animation system manager
+        std::shared_ptr<AnimationSystem::Manager> _pAnimationSystenManager;
+        
+        std::shared_ptr<ResourceManager> _resourceManager;
+        
+        // semaphore for draw
         dispatch_semaphore_t _semaphore;
-        uint _animationIndex;
-        float _zoom;
-        float _angle;
-
-        size_t _drawIndex;
     };
 } // namespace AnimationSystem
 

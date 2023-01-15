@@ -7,11 +7,11 @@
 namespace AnimationSystem
 {
     class JointPose
-    {
-    public:
-        Base::Quaternion _rotation{0, 0, 0, 0};
-        simd::float3 _translation;
-        float _scale; // uniform sclae only
+{
+public:
+    simd::quatf _rotation{.0f, .0f, .0f, 1.f};
+    simd::float3 _translation{.0f, .0f, .0f};
+    float _scale{1}; // uniform scale only
     };
 } // namespace AnimationSystem
 

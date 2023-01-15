@@ -18,10 +18,10 @@ namespace AnimationSystem
         void initData(simd::float3 pos);
         void setBuffer();
         void updateData();
-        [[nodiscard]]ShaderTypes::CameraData* data() {return _cameraData;}
+        [[nodiscard]]ShaderTypes::CameraData* data() {return _cameraData.get();}
 
     private:
-        ShaderTypes::CameraData* _cameraData{nullptr};
+        std::shared_ptr<ShaderTypes::CameraData>_cameraData{nullptr};
         Entity* _e{nullptr};
         
     };

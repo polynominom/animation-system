@@ -2,18 +2,27 @@
 #define ANIMATIONSAMPLE_HPP
 
 #include "JointPose.hpp"
+
+#include <string>
 #include <vector>
+#include <memory>
 
 namespace AnimationSystem
 {
+    /**
+     * Animation sample for time t that has the joint poses on that time.
+     */
     class AnimationSample
     {
     public:
-        AnimationSample(std::vector<JointPose> poses) : _jointPoses(std::move(poses)){};
+        AnimationSample(size_t jointCount){_jointPoses.resize(jointCount);}
+        AnimationSample(std::vector<std::shared_ptr<JointPose>> poses) : _jointPoses(std::move(poses)){};
+        void setJointPoses(std::vector<std::shared_ptr<JointPose>>&& jointPoses){_jointPoses = std::move(jointPoses);}
         [[nodiscard]] JointPose getPose(int i);
 
     private:
-        [[no_unique_address]] std::vector<JointPose> _jointPoses;
+        // skeleton joints
+        std::vector<std::shared_ptr<JointPose>> _jointPoses;
     };
 } // namespace AnimationSystem
 

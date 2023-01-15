@@ -3,5 +3,6 @@
 
 #include "Fs/Reader.hpp"
 #include "Task/Task.hpp"
+#include "ResourceManager.hpp"
 
 #endif

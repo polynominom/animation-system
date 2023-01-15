@@ -16,11 +16,10 @@ namespace AnimationSystem
     {
     public:
         AssimpAnimationHandler(SkeletonPose *pose): _skeletonPose(pose){}
-        simd::float3 lerpScale(float timeTick, const aiNodeAnim *pNodeAnim);
-        simd::float3 lerpTranslate(float timeTick, const aiNodeAnim *pNodeAnim);
-        simd::quatf lerpRotation(float timeTick, const aiNodeAnim *pNodeAnim);
-        void computeGlobalPoses(float timeInSec, const aiScene* pScene);
-        void readNodeHierarchy(float timeTick, const aiScene* pScene, const aiNode* pNode, const simd::float4x4& parentTransform);
+        static simd::float3 lerpScale(float timeTick, const aiNodeAnim *pNodeAnim);
+        static simd::float3 lerpTranslate(float timeTick, const aiNodeAnim *pNodeAnim);
+        static simd::quatf lerpRotation(float timeTick, const aiNodeAnim *pNodeAnim);
+        //void readNodeHierarchy(float timeTick, const aiScene* pScene, const aiNode* pNode, const simd::float4x4& parentTransform);
         
     private:
         // Skeleton pose to handle.

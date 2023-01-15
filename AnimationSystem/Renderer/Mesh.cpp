@@ -13,7 +13,7 @@ namespace AnimationSystem
             buffer->didModifyRange(NS::Range::Make(0, buffer->length()));
         }
     }
-
+    
     std::string MeshComponent::getName() noexcept
     {
         return "MeshComponent";
@@ -23,6 +23,18 @@ namespace AnimationSystem
     {
         pVertexBuffer->release();
         pIndexBuffer->release();
+    }
+
+    void Mesh::updateJointBuffer()
+    {
+        size_t jointDataSize = sizeof(ShaderTypes::JointGlobalPoseData) * this->getSkeletonPose()->getSkeleton()->jointCount();
+        auto transforms = this->getSkeletonPose()->getFinalTransformations();
+        if(transforms.size() > 0)
+        {
+            //copyAndUpdateBuffer(this->pJointBuffer, transforms.data(), vertexDataSize);
+            memcpy(this->pJointBuffer->contents(), transforms.data(), jointDataSize);
+            this->pJointBuffer->didModifyRange(NS::Range::Make(0, this->pJointBuffer->length()));
+        }
     }
 
     void Mesh::buildBuffers()
@@ -46,9 +58,12 @@ namespace AnimationSystem
         copyAndUpdateBuffer(this->pIndexBuffer, this->_indexData.data(), indexDataSize);
         
         auto transforms = this->getSkeletonPose()->getFinalTransformations();
-        //copyAndUpdateBuffer(this->pJointBuffer, transforms.data(), vertexDataSize);
-        memcpy(this->pJointBuffer->contents(), transforms.data(), jointDataSize);
-        this->pJointBuffer->didModifyRange(NS::Range::Make(0, this->pJointBuffer->length()));
+        if(transforms.size()>0)
+        {
+            //copyAndUpdateBuffer(this->pJointBuffer, transforms.data(), vertexDataSize);
+            memcpy(this->pJointBuffer->contents(), transforms.data(), jointDataSize);
+            this->pJointBuffer->didModifyRange(NS::Range::Make(0, this->pJointBuffer->length()));
+        }
     }
 
 //    void Mesh::buildBuffersFrom(size_t vertexDataSize, ShaderTypes::VertexData *vertexDataArr, size_t indexDataSize, uint16_t *indices)
@@ -106,9 +121,9 @@ namespace AnimationSystem
 
         std::cout << "Skinned vertices are initialized: " << _skinnedVertices[0]._position.y << "\n";
     }
-    void Mesh::addSkinnedVertexWeight(size_t vertexId, size_t jointIndex, float weight)
+    void Mesh::addSkinnedVertexWeight(size_t vertexId, int jointIndex, float weight)
     {
-        auto v = _skinnedVertices[vertexId];
+        auto &v = _skinnedVertices[vertexId];
 
         // No weight initialized for the vertex, adding 1st weight.
         if (v._jointWeights.x == 0)
@@ -135,9 +150,11 @@ namespace AnimationSystem
         }
 
         // 4th weight,
-        if (v._jointIndex[3] == -1)
+        if (v._jointWeights.w == 0)
         {
+            v._jointWeights.w = weight;
             v._jointIndex.w = jointIndex;
+            return;
         }
     }
 

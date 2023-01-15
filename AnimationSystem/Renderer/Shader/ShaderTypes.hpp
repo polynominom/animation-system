@@ -12,8 +12,8 @@ namespace AnimationSystem
             simd::float3 position;
             simd::float3 normal;
             simd::float2 texcoord;
-            simd::float3 _jointWeights{0.f,0.f,0.f};
-            simd::int4 _jointIndex{-1,-1,-1,-1};
+            simd::float4 _jointWeights{0.f,0.f,0.f,0.0f};
+            simd::uint4 _jointIndex{0,0,0,0};
         };
     
         struct JointGlobalPoseData

@@ -48,6 +48,21 @@ namespace AnimationSystem
         pCloseWindowItem->setKeyEquivalentModifierMask(NS::EventModifierFlagCommand);
         pWindowMenuItem->setSubmenu(pWindowMenu);
 
+        NS::MenuItem *pCaptureMenuItem = nullptr;
+        NS::Menu *pCaptureMenu = nullptr;
+#if __METAL_FRAME_DEBUGGER && __METAL_FRAME_DEBUGGER == 1
+        // set CaptureMenu UI
+        pCaptureMenuItem = NS::MenuItem::alloc()->init();
+        pCaptureMenu = NS::Menu::alloc()->init(NS::String::string("Capture", UTF8StringEncoding));
+        SEL beginCaptureCb = NS::MenuItem::registerActionCallback("beginCapture", [](void *, SEL, const NS::Object *)
+                                                                  { MetalFrameDebugger::getInstance().setBeginCapture(true); });
+
+        NS::MenuItem *pBeginCaptureItem = pCaptureMenu->addItem(NS::String::string("Begin Capture", UTF8StringEncoding), beginCaptureCb, NS::String::string("c", UTF8StringEncoding));
+        pBeginCaptureItem->setKeyEquivalentModifierMask(NS::EventModifierFlagCommand);
+        pCaptureMenuItem->setSubmenu(pCaptureMenu);
+        pMainMenu->addItem(pCaptureMenuItem);
+#endif
+
         pMainMenu->addItem(pAppMenuItem);
         pMainMenu->addItem(pWindowMenuItem);
 
@@ -55,6 +70,11 @@ namespace AnimationSystem
         pWindowMenuItem->release();
         pAppMenu->release();
         pWindowMenu->release();
+
+        if (pCaptureMenuItem)
+            pCaptureMenuItem->release();
+        if (pCaptureMenu)
+            pCaptureMenu->release();
 
         return pMainMenu->autorelease();
     }
@@ -76,7 +96,7 @@ namespace AnimationSystem
             NS::WindowStyleMaskClosable | NS::WindowStyleMaskTitled,
             NS::BackingStoreBuffered,
             false);
-        
+
         _pDevice = MTL::CreateSystemDefaultDevice();
 
         _pMtkView = MTK::View::alloc()->init(frame, _pDevice);

@@ -9,7 +9,7 @@
 #include <assimp/postprocess.h>
 #include <Renderer/Shader/ShaderTypes.hpp>
 #include <Animation/Skeleton.hpp>
-
+#include <Animation/Manager.hpp>
 
 #include <iostream>
 #include <memory>
@@ -20,7 +20,9 @@ namespace AnimationSystem
     class Import
     {
     public:
-        [[nodiscard]] static std::vector<std::shared_ptr<Mesh>> loadMeshes(const char *filename);
+        static void loadMeshesAndAnimations(const char *filename,
+                                            std::vector<std::shared_ptr<Mesh>> &meshesToBeLoaded,
+                                            std::shared_ptr<AnimationSystem::Manager> pManager);
     };
 
 } // namespace AnimationSystem

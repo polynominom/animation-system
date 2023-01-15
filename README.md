@@ -4,7 +4,22 @@
 
 Required: macOS 13 or above.
 
-Running example:
+Running 3d character animation example
+
+```terminal
+mkdir build
+cd build
+cmake .. # or cmake .. -G "Xcode" if you want to create a xcode project.
+cmake --build .
+./examples/anim_sys_demo/anim_sys_example
+```
+
+Output should be looking like this:
+
+https://user-images.githubusercontent.com/16775368/212504713-243d9278-e5ce-4a80-bc66-2320ef51af84.mov
+
+
+Running example for simple manbroot animation with instancing:
 
 ```terminal
 mkdir build
@@ -28,17 +43,17 @@ GLFW and IMGUI can be used as well, another example can be run:
 
 Output example should be looking like this:
 
-![Imgui Example Video](docs/ImguiExampleWindow.mov)
+
+
+https://user-images.githubusercontent.com/16775368/212504938-f463b12b-bab6-47fa-bf31-be8d44f156fb.mov
+
+
 
 Core Tasks:
 
-- [x] Examples
-- [x] Basic components (Quaternions, Skeleton, Joints, Animation Clips, etc...)
-- [x] Camera and perspective
-- [x] Mesh loading and rendering
-- [ ] Scene
+- [x] Implement Skeleton Mesh and Animation parsing
+- [ ] Add skinnin joint bone information into rendering.
 - [ ] Implement simple 1D BlendTree
 - [ ] Extend 2D BlendTree
-- [ ] Implement Skeleton Mesh and Animation parsing
 - [ ] Implement InverseKinematic
 - [ ] Entity Component System

@@ -21,13 +21,22 @@ namespace AnimationSystem
         SkeletonPose(std::shared_ptr<Skeleton> pSkeleton);
         void updateGlobalPose(std::string name, simd::float4x4 pose);
         void addJointName(std::string name, size_t id) noexcept {_jointNameToIdMap[name] = id;}
+        [[nodiscard]] int getJointId(const std::string &name)
+        {
+            auto x = _jointNameToIdMap.find(name);
+            if(x == _jointNameToIdMap.end())
+                return -1;
+            
+            return (int) x->second;
+        }
+        
         void computeGlobalPosesFromAssimp(float timeInSec, const aiScene *pScene);
         void initGlobalPoses();
         std::shared_ptr<Skeleton> getSkeleton(){return _pSkeleton;}
         void compFinalTransformations();
         std::vector<simd::float4x4> getFinalTransformations() const noexcept {return _finalTransformations;}
         
-    private:
+    private: 
         std::shared_ptr<Skeleton> _pSkeleton;
         std::vector<JointPose> _localPoses;
         std::unordered_map<std::string, size_t> _jointNameToIdMap{};

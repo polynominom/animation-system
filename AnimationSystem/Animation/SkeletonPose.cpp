@@ -24,6 +24,12 @@ namespace AnimationSystem
         _finalTransformations.resize(_pSkeleton->jointCount(), Math::makeIdentity());
     }
 
+    void SkeletonPose::updateGlobalPose(int id, simd::float4x4 pose)
+    {
+        if(id < _globalPoses.size())
+            _globalPoses[id] = pose;
+    }
+
     void SkeletonPose::updateGlobalPose(std::string name, simd::float4x4 pose)
     {
         auto it = _jointNameToIdMap.find(name);
@@ -37,4 +43,35 @@ namespace AnimationSystem
         //handler.computeGlobalPoses(timeInSec, pScene);
 
     }
+
+    simd::float3 SkeletonPose::getTranslation(int id)
+    {
+        return _localPoses[id]->_translation;
+    }
+    
+    float SkeletonPose::getScale(int id)
+    {
+        return _localPoses[id]->_scale;
+    }
+
+    simd::quatf SkeletonPose::getRotation(int id)
+    {
+        return _localPoses[id]->_rotation;
+    }
+
+    void SkeletonPose::setTranslation(int id, simd::float3 t)
+    {
+        _localPoses[id]->_translation = t;
+    }
+
+    void SkeletonPose::setScale(int id, float s)
+    {
+        _localPoses[id]->_scale = s;
+    }
+
+    void SkeletonPose::setRotation(int id, simd::quatf r)
+    {
+        _localPoses[id]->_rotation = r;
+    }
+
 } // namespace AnimationSystem

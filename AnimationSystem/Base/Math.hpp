@@ -17,12 +17,16 @@ namespace AnimationSystem
         static simd::float4x4 rotateY(float angleRadians);
         static simd::float4x4 rotateZ(float angleRadians);
         static simd::float4x4 translate(const simd::float3 &v);
-        static simd::float4x4 scale(const simd::float3 &v);
+        static simd::float4x4 scaleM(const simd::float3 &v);
         static simd::float3x3 discardTranslation(const simd::float4x4 &m);
         // convertions
         static simd::float4x4 convertAssimpM(const aiMatrix4x4 from);
         static simd::float4x4 convertAssimpMt(const aiMatrix4x4t<float>& from);
         static simd::float3 convertAssimpV(const aiVector3D& from);
+        //matrix decompositions
+        static simd::float3 translation(const simd::float4x4 &_m);
+        static simd::float3 scale(const simd::float4x4 &_m);
+        static simd::quatf rotation(const simd::float4x4 &_m);
         };
 } // namespace AnimationSystem
 #endif

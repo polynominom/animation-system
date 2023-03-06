@@ -88,7 +88,7 @@ namespace AnimationSystem
         return simd_matrix(col0, col1, col2, col3);
     }
 
-    simd::float4x4 Math::scale(const simd::float3 &v)
+simd::float4x4 Math::scaleM(const simd::float3 &v)
     {
         return simd_matrix(
             (float4){v.x, 0, 0, 0},
@@ -101,4 +101,21 @@ namespace AnimationSystem
     {
         return simd_matrix(m.columns[0].xyz, m.columns[1].xyz, m.columns[2].xyz);
     }
+    
+    simd::float3 Math::scale(const simd::float4x4 &_m)
+    {
+        return simd::float3{_m.columns[0].x,_m.columns[1].y,_m.columns[2].z};
+    }
+
+    simd::float3 Math::translation(const simd::float4x4 &_m)
+    {
+        return simd::float3{_m.columns[3].x,_m.columns[3].y,_m.columns[3].z};
+    }
+
+    simd::quatf Math::rotation(const simd::float4x4 &_m)
+    {
+        auto rot = simd::float3x3(_m.columns[0].xyz, _m.columns[1].xyz, _m.columns[2].xyz);
+        return simd::quatf(rot);
+    }
+
 } // namespace AnimationSystem

@@ -11,7 +11,7 @@ namespace AnimationSystem
         if(theAnim->nameExist(name))
         {
             float timeTick = theAnim->getTimeTick(timeInSec);
-            auto scl = Math::scale(theAnim->compScale(timeTick, name));
+            auto scl = Math::scaleM(theAnim->compScale(timeTick, name));
             auto trs = Math::translate(theAnim->compPosition(timeTick, name));
             auto rot = simd::float4x4(theAnim->compRotation(timeTick, name));
             nodeTransform = trs * rot * scl;

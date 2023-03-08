@@ -1,21 +1,21 @@
 #include <SkeletonPose.hpp>
 #include <Math.hpp>
+#include <JointMask.hpp>
 
 namespace AnimationSystem
 {
-using JointMask = std::vector<float>;
-    template<typename Blender, typename BlendWeight>
-    void BlenderLocal(const SkeletonPose* pSourcePose, const SkeletonPose* pTargetPose, const float blendWeight, const JointMask* pJointMask, SkeletonPose* pResultPose)
+    template <typename Blender, typename BlendWeight>
+    void BlenderLocal(const SkeletonPose *pSourcePose, const SkeletonPose *pTargetPose, const float blendWeight, const JointMask *pJointMask, SkeletonPose *pResultPose)
     {
         int n = pResultPose->getSkeleton()->jointCount();
-        for( int jointId = 0; jointId < n; ++jointId)
+        for (int jointId = 0; jointId < n; ++jointId)
         {
-            const float jointBlendWeight = BlendWeight::GetBlendWeight( blendWeight, pJointMask, jointId );
-            if(jointBlendWeight == 0.0f)
+            const float jointBlendWeight = BlendWeight::GetBlendWeight(blendWeight, pJointMask, jointId);
+            if (jointBlendWeight == 0.0f)
             {
                 pResultPose->updateGlobalPose(jointId, pSourcePose->getGlobalPose(jointId));
             }
-            else 
+            else
             {
                 const simd::float4x4 sourceTransform = pSourcePose->getGlobalPose(jointId);
                 const simd::float4x4 targetTransform = pTargetPose->getGlobalPose(jointId);

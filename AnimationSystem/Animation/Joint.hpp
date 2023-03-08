@@ -22,8 +22,8 @@ namespace AnimationSystem
     private:
         simd::float4x4 _invTPose{}; // inverse of the T pose(i.e., bind pose)
         uint32_t _parentId{0};      // parent
-        std::string _name{};        //
+        std::string _name{};        // p
     };
-} // namespace AnimationSystem::Base
+} // namespace AnimationSystem::Bases
 
 #endif

@@ -1,5 +1,4 @@
 #include "SkeletonPose.hpp"
-#include <Animation/AssimpAnimationHandler.hpp>
 #include <iostream>
 
 namespace AnimationSystem

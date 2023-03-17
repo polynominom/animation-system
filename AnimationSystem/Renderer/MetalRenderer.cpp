@@ -179,7 +179,7 @@ namespace AnimationSystem
             
             // MATRIX MULTIPLICATIONS FOR ROTATION, POSITION, SCALE
             // std::cout << "x: "<<ent.getScale().x << ", y" << ent.getScale().y << ", Z: "<<ent.getScale().z<<std::endl;
-            auto scale = Math::scale({ent.getScale().x, ent.getScale().y, ent.getScale().z});
+            auto scale = Math::scaleM({ent.getScale().x, ent.getScale().y, ent.getScale().z});
             //scale = Math::scale({0.01f, 0.01f, 0.01f});
             auto objectPosition = Math::add(ent.getPosition().xyz, {0., 0., 0.0});
 

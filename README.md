@@ -50,10 +50,12 @@ https://user-images.githubusercontent.com/16775368/212504938-f463b12b-bab6-47fa-
 
 
 Core Tasks:
-
-- [x] Implement Skeleton Mesh and Animation parsing
+- [x] Implement Skeleton Mesh and Animation parsing.
 - [ ] Add skinnin joint bone information into rendering.
-- [ ] Implement simple 1D BlendTree
-- [ ] Extend 2D BlendTree
-- [ ] Implement InverseKinematic
-- [ ] Entity Component System
+- [ ] Implement Generic BlendTree that can handle 1D and 2D lerp blending operations as well as additive blending.
+- [ ] Add InverseKinematic Solvers for LookAt, Foot and GrabReach.
+- [ ] Entity Component System.
+- [ ] CrossFade transition mechanism with blend trees.
+- [ ] AnimationStateMachine that treats every blend tree as a different state.
+- [ ] Integrate hierarchy into AnimationStateMachine and make it layered.
+- [ ] Allow ragdoll physics to effect to Post Processing stage in the pipeline.

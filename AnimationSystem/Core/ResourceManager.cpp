@@ -26,4 +26,9 @@ namespace AnimationSystem
     {
         return get(_characterPathMap, name);
     }
+
+    std::string ResourceManager::getBlendSpecificationPath(const std::string& name) const noexcept
+    {
+        return get(_blendSpecificationMap, name);
+    }
 }

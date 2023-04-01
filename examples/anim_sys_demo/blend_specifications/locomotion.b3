@@ -1,0 +1,8 @@
+# example of blend tree FILE
+# run and walk animation names at the below should be extracted directly from the character file(so the names should match)
+
+-root{1D}
+--w{50, 50}
+--name{locomotion}
+--c:run
+--c:walk

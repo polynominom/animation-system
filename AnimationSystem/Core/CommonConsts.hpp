@@ -18,6 +18,9 @@ const std::string_view COMMON_exampleCharacterKey = "ExampleCharacter";
 // SHADERS
 const std::string_view COMMON_phongSahderKey = "PhongShader";
 const std::string_view COMMON_celSahderKey = "CelShader";
+
+//BLEND SPECIFICATIONS
+const std::string_view COMMON_locomotionBlendSpecKey = "BlendLocomotion";
 }
 
 

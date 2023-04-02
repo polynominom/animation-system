@@ -3,6 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${COMMON_DEMO_FOLDER})
 FILE(COPY ${SHADER_RESOURCES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 set(CHARACTER_MODEL_RES ${CMAKE_CURRENT_SOURCE_DIR}/character_model)
+set(BLEND_SPECIFICATIONS ${CMAKE_CURRENT_SOURCE_DIR}/blend_specifications)
 
 FILE(COPY ${CHARACTER_MODEL_RES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -25,6 +26,7 @@ add_executable(anim_sys_example ${src} ${headers})
 
 target_compile_definitions(anim_sys_example PUBLIC -DCHARACTER_MODEL_FOLDER="${CHARACTER_MODEL_RES}")
 target_compile_definitions(anim_sys_example PUBLIC -DSHADER_FOLDER="${SHADER_RESOURCES}")
+target_compile_definitions(anim_sys_example PUBLIC -DBLEND_SPEC_FOLDER="${BLEND_SPECIFICATIONS}")
 
 target_compile_definitions(anim_sys_example PUBLIC COREDEMO)
 # Glfw compile definition

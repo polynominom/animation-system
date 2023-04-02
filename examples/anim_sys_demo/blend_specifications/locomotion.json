@@ -1,6 +1,3 @@
-# example of blend tree FILE
-# run and walk animation names at the below should be extracted directly from the character file(so the names should match)
-
 {
   "name": "Walk-Run-Idle",
   "parameters": [

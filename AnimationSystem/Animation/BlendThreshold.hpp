@@ -5,29 +5,29 @@
 
 namespace AnimationSystem
 {
-class BlendWeight
+class BlendThreshold
 {
 public:
-    static float getBlendWeight(const float weight, const JointMask *pJointMask, const int jointId);
-    virtual ~BlendWeight();
+    static float getBlendThreshold(const float weight, const JointMask *pJointMask, const int jointId);
+    virtual ~BlendThreshold();
 };
 
-class BlendWeight1D : BlendWeight
+class BlendThreshold1D : BlendThreshold
 {
 public:
-    BlendWeight1D(int w) : _position(w) {}
-    ~BlendWeight1D();
+    BlendThreshold1D(int w) : _position(w) {}
+    ~BlendThreshold1D();
     int getPosition() const { return _position; }
 
 private:
     int _position;
 };
 
-class BlendWeight2D : BlendWeight
+class BlendThreshold2D : BlendThreshold
 {
 public:
-    BlendWeight2D(int w1, int w2) : _blendPosition1(w1), _blendPosition2(w2) {}
-    ~BlendWeight2D();
+    BlendThreshold2D(int w1, int w2) : _blendPosition1(w1), _blendPosition2(w2) {}
+    ~BlendThreshold2D();
     int getPosition(int i) const
     {
         assert(i == 0 || i == 1);

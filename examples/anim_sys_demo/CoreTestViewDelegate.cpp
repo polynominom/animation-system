@@ -18,12 +18,17 @@ namespace Example
 #endif
         characterPath += "/character.fbx";
         shaderPath+="/phong_shader.metal";
-        std::string locomotionBlendSpecPath = blendSpecificationsPath + "/locomotion.txt";
+        std::string locomotionBlendSpecPath = blendSpecificationsPath + "/locomotion.b3";
         
-        _pAnimSystem = new AnimationSystem::AnimationSystem(pDevice);
+        _pAnimSystem = new AnimationSystem::AnimationSystem();
+        
+        // initialize the resources of the animation system
         _pAnimSystem->setCommonShaderPath(shaderPath);
         _pAnimSystem->setCommonCharacterPath(characterPath);
         _pAnimSystem->setLocomotionBlendSpecificationPath(locomotionBlendSpecPath);
+        
+        // set the renderer
+        _pAnimSystem->setRenderer(pDevice);
     }
     CoreTestViewDelegate::~CoreTestViewDelegate()
     {

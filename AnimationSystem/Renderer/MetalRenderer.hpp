@@ -20,6 +20,9 @@
 #include <iostream>
 #include <memory>
 
+/**
+    BASIC RENDERER FOR ANIMATION SYSTEM
+ */
 namespace AnimationSystem
 {
     class MetalRenderer
@@ -60,12 +63,12 @@ namespace AnimationSystem
 
         // scene
         std::shared_ptr<Scene> _scene;
-        
+
         // animation system manager
         std::shared_ptr<AnimationSystem::Manager> _pAnimationSystenManager;
-        
+
         std::shared_ptr<ResourceManager> _resourceManager;
-        
+
         // semaphore for draw
         dispatch_semaphore_t _semaphore;
     };

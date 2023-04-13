@@ -13,8 +13,14 @@ namespace AnimationSystem
     class AnimationSystem
     {
     public:
-        AnimationSystem(MTL::Device *device, std::string shaderPath, std::string characterPath);
-        MetalRenderer* getRenderer() { return _renderer.get(); }
+        AnimationSystem();
+        void setCommonShaderPath(const std::string &shaderPath);
+        void setCommonCharacterPath(const std::string &shaderPath);
+        void setLocomotionBlendSpecificationPath(const std::string &locomotionBlendSpecPath);
+        void setRenderer(MTL::Device *device);
+
+        MetalRenderer *getRenderer() { return _renderer.get(); }
+
     private:
         std::shared_ptr<MetalRenderer> _renderer;
         std::shared_ptr<ResourceManager> _resourceManager;

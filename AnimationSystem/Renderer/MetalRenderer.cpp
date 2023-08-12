@@ -16,12 +16,12 @@ namespace AnimationSystem
         _pDevice->release();
     }
 
-    MetalRenderer::MetalRenderer(MTL::Device *device, std::shared_ptr<ResourceManager> resourceManager)
+    MetalRenderer::MetalRenderer(MTL::Device *device, const ResourceManager* resourceManager)
     {
         RendererManager::init(device);
         
         _resourceManager = resourceManager;
-        _pAnimationSystenManager = std::make_shared<AnimationSystem::Manager>();
+        _pAnimationSystenManager = std::make_unique<AnimationSystem::Manager>();
 
         _pDevice = RendererManager::getDevice();
 
@@ -110,15 +110,18 @@ namespace AnimationSystem
         _scene = std::make_shared<Scene>();
         
         // load meshes and animation.
-        std::vector<std::shared_ptr<Mesh>> meshes;
+        
         
         // get character path then load it's mesh and animations.
         std::string shaderPath = _resourceManager->getCharacterPath(COMMON_exampleCharacterKey.data());
-        Import::loadMeshesAndAnimations(shaderPath.data(), meshes, _pAnimationSystenManager);
+        auto meshes = Import::loadMeshes(shaderPath.data());
+        auto clips = Import::loadAnimations(shaderPath.data(), meshes);
+        
+        _pAnimationSystenManager->setAssimpAnimations(std::move(clips));
 
         std::cout << "meshes successfully parsed: " << meshes.size() << "\n";
         // handle meshes
-        for (auto m : meshes)
+        for (auto &m : meshes)
         {
             Entity e;
             e.setPosition({0.f, 0.0f, 0.f, 1.f});
@@ -175,7 +178,7 @@ namespace AnimationSystem
             auto meshComp = std::dynamic_pointer_cast<MeshComponent>(ent.getComponent("MeshComponent"));
             
             // update mesh jointBuffer
-            _pAnimationSystenManager->calculateSkeletonPosesWithTime(timeInSec, meshComp->mesh);
+            _pAnimationSystenManager->calculateSkeletonPosesWithTime(timeInSec, *meshComp->mesh);
             
             // MATRIX MULTIPLICATIONS FOR ROTATION, POSITION, SCALE
             // std::cout << "x: "<<ent.getScale().x << ", y" << ent.getScale().y << ", Z: "<<ent.getScale().z<<std::endl;

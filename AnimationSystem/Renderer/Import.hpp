@@ -20,9 +20,8 @@ namespace AnimationSystem
     class Import
     {
     public:
-        static void loadMeshesAndAnimations(const char *filename,
-                                            std::vector<std::shared_ptr<Mesh>> &meshesToBeLoaded,
-                                            std::shared_ptr<AnimationSystem::Manager> pManager);
+        static std::vector<std::unique_ptr<Mesh>> loadMeshes(const char *filename);
+        static std::vector<std::unique_ptr<AssimpAnimation>> loadAnimations(const char *filename, const std::vector<std::unique_ptr<Mesh>> &meshesToBeLoaded);
     };
 
 } // namespace AnimationSystem

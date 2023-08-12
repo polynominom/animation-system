@@ -16,13 +16,13 @@ namespace AnimationSystem
     {
     public:
         AnimationSample(size_t jointCount){_jointPoses.resize(jointCount);}
-        AnimationSample(std::vector<std::shared_ptr<JointPose>> poses) : _jointPoses(std::move(poses)){};
-        void setJointPoses(std::vector<std::shared_ptr<JointPose>>&& jointPoses){_jointPoses = std::move(jointPoses);}
+        AnimationSample(std::vector<std::unique_ptr<JointPose>> poses) : _jointPoses(std::move(poses)){};
+        void setJointPoses(std::vector<std::unique_ptr<JointPose>>&& jointPoses){_jointPoses = std::move(jointPoses);}
         [[nodiscard]] JointPose getPose(int i);
 
     private:
         // skeleton joints
-        std::vector<std::shared_ptr<JointPose>> _jointPoses;
+        std::vector<std::unique_ptr<JointPose>> _jointPoses;
     };
 } // namespace AnimationSystem
 

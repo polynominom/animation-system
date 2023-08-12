@@ -4,9 +4,9 @@
 #include <BlendThreshold.hpp>
 namespace AnimationSystem
 {
-    std::shared_ptr<SkeletonPose> BlendOperationHandler::handle(BlendNode &node1, BlendNode &node2, float time)
+    std::unique_ptr<SkeletonPose> BlendOperationHandler::handle(BlendNode &node1, BlendNode &node2, float time)
     {
-        std::shared_ptr<SkeletonPose> blendedPose = std::make_shared<SkeletonPose>();
+        auto blendedPose = std::make_unique<SkeletonPose>();
 
         auto skeletonPose1 = node1.operate();
         auto skeletonPose2 = node2.operate();

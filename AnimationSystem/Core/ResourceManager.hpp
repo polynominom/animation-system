@@ -26,9 +26,9 @@ namespace AnimationSystem
         std::string getBlendSpecificationPath(const std::string &name) const noexcept;
 
     private:
-        std::unordered_map<std::string,std::string> _shaderPathMap;
-        std::unordered_map<std::string,std::string> _characterPathMap;
-        std::unordered_map<std::string, std::string> _blendSpecificationMap;
+        std::unordered_map<std::string,std::string> _shaderPathMap{};
+        std::unordered_map<std::string,std::string> _characterPathMap{};
+        std::unordered_map<std::string, std::string> _blendSpecificationMap{};
     };
 } // namespace AnimationSytem
 

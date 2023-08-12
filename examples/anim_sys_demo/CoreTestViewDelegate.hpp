@@ -18,7 +18,7 @@ namespace Example
         virtual void drawInMTKView(MTK::View *pView) override;
 
     private:
-        AnimationSystem::AnimationSystem *_pAnimSystem;
+        std::unique_ptr<AnimationSystem::AnimationSystem> _pAnimSystem;
     };
 
 } // namespace AnimationSystem

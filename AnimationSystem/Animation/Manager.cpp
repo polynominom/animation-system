@@ -6,7 +6,12 @@ namespace AnimationSystem
 {
     simd::float4x4 Manager::_compGlobalPoseRecursively(float timeInSec, SkeletonPose *pose, std::string name, const simd::float4x4 &parentTransform)
     {
-        auto theAnim = this->_assimpAnimations[0];
+        if(this->_assimpAnimations.size() == 0)
+        {
+            return simd::float4x4{};
+        }
+        
+        auto theAnim = this->_assimpAnimations[0].get();
 
         // Calculate JointPose transformation matrix for the time t.
         simd::float4x4 nodeTransform = theAnim->getInitialTransformation(name);
@@ -43,14 +48,14 @@ namespace AnimationSystem
     {
     }
 
-    void Manager::calculateSkeletonPosesWithTime(float timeInSec, std::shared_ptr<Mesh> &mesh)
+    void Manager::calculateSkeletonPosesWithTime(float timeInSec, Mesh &mesh)
     {
 
         if (this->_assimpAnimations.size() == 0)
             return;
 
         auto firstParentTransform = Math::makeIdentity();
-        auto pose = mesh->getSkeletonPose();
+        auto pose = mesh.getSkeletonPose();
         _compGlobalPoseRecursively(timeInSec, pose,
                                    this->_assimpAnimations[0]->getRootNodeName(),
                                    firstParentTransform);
@@ -60,6 +65,6 @@ namespace AnimationSystem
 
         // calculate the joint buffer
         // at this point every possible global pose is calculated for the given mesh
-        mesh->updateJointBuffer();
+        mesh.updateJointBuffer();
     }
 } // namespace AnimationSystem

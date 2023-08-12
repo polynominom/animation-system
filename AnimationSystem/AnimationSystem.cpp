@@ -6,7 +6,7 @@ namespace AnimationSystem
     AnimationSystem::AnimationSystem()
     {
         // init the resource manager with given pre-determined paths
-        _resourceManager = std::make_shared<ResourceManager>();
+        _resourceManager = std::make_unique<ResourceManager>();
     }
     void AnimationSystem::setCommonCharacterPath(const std::string &characterPath)
     {
@@ -25,7 +25,7 @@ namespace AnimationSystem
 
     void AnimationSystem::setRenderer(MTL::Device *device)
     {
-        _renderer = std::make_shared<MetalRenderer>(device, _resourceManager);
+        _renderer = std::make_unique<MetalRenderer>(device, _resourceManager.get());
     }
 
 } // namespace AnimationSystem

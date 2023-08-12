@@ -28,7 +28,7 @@ namespace AnimationSystem
     class MetalRenderer
     {
     public:
-        MetalRenderer(MTL::Device *device, std::shared_ptr<ResourceManager> resourceManager);
+        MetalRenderer(MTL::Device *device, const ResourceManager* resourceManager);
         ~MetalRenderer();
         MTL::Device *getDevice();
         void buildShaders();
@@ -65,9 +65,9 @@ namespace AnimationSystem
         std::shared_ptr<Scene> _scene;
 
         // animation system manager
-        std::shared_ptr<AnimationSystem::Manager> _pAnimationSystenManager;
+        std::unique_ptr<AnimationSystem::Manager> _pAnimationSystenManager;
 
-        std::shared_ptr<ResourceManager> _resourceManager;
+        const ResourceManager* _resourceManager;
 
         // semaphore for draw
         dispatch_semaphore_t _semaphore;

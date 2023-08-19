@@ -3,7 +3,7 @@
 
 namespace AnimationSystem
 {
-    SkeletonPose::SkeletonPose(std::shared_ptr<Skeleton> pSkeleton): _pSkeleton(std::move(pSkeleton))
+    SkeletonPose::SkeletonPose(std::unique_ptr<Skeleton> pSkeleton): _pSkeleton(std::move(pSkeleton))
     {
         
     }

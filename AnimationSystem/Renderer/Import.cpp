@@ -3,6 +3,8 @@
 #include <Base/Math.hpp>
 #include <Animation/AssimpAnimationHandler.hpp>
 #include <Animation/AssimpAnimation.hpp>
+//#include <thread>
+//#include <chrono>
 
 #define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded)
 
@@ -17,10 +19,11 @@ namespace AnimationSystem
 {
     namespace
     {
-        std::shared_ptr<Mesh> assimpToMesh(const aiMesh *assimpMesh, const aiScene *pScene)
+        std::unique_ptr<Mesh> assimpToMesh(const aiMesh *assimpMesh, const aiScene *pScene)
         {
-            auto m = std::make_shared<Mesh>();
-
+            using namespace std::literals::chrono_literals;
+            
+            auto m = std::make_unique<Mesh>();
             m->numberOfVertices = assimpMesh->mNumVertices;
             m->numberOfIndices = assimpMesh->mNumFaces * 3;
             std::cout << "2. Parsing " << m->numberOfVertices << " NUMBER OF VERTICES...\n";
@@ -74,9 +77,9 @@ namespace AnimationSystem
             {
                 m->initSkinnedVertex();
                 
-                std::shared_ptr<SkeletonPose> skeletonPose = std::make_shared<SkeletonPose>(pScene);
+                std::unique_ptr<SkeletonPose> skeletonPose = std::make_unique<SkeletonPose>(pScene);
                 
-                std::vector<std::shared_ptr<Joint>> jointsTest;
+                std::vector<std::unique_ptr<Joint>> jointsTest;
                 
                 for(size_t ji = 0; ji < assimpMesh->mNumBones; ++ji)
                 {
@@ -86,7 +89,7 @@ namespace AnimationSystem
                         continue;
                     
                     // create joint with name
-                    std::shared_ptr<Joint> j = std::make_shared<Joint>(assimpBone->mName.C_Str());
+                    std::unique_ptr<Joint> j = std::make_unique<Joint>(assimpBone->mName.C_Str());
                     skeletonPose->addJointName(j->getName(), ji);
                     
                     //std::cout << "ADDING JOINT NAME: "<<assimpBone->mName.C_Str()<<"\n";
@@ -102,13 +105,13 @@ namespace AnimationSystem
                     }
                     
                     // update skeleton
-                    jointsTest.push_back(std::move(j));
+                    jointsTest.emplace_back(std::move(j));
                     //pSkeleton->addJoint(j);
                 }
                 skeletonPose->getSkeleton()->setJoints(std::move(jointsTest));
                 // adding joint is done. Now initialize the global poses
                 skeletonPose->initGlobalPoses();
-                m->setSkeletonPose(skeletonPose);
+                m->setSkeletonPose(std::move(skeletonPose));
                 // m->getSkeletonPose()->computeGlobalPosesFromAssimp(0.0, pScene);
                 // m->getSkeletonPose()->compFinalTransformations();
                 // m->skin();
@@ -116,61 +119,82 @@ namespace AnimationSystem
             return m;
         }
 
-        std::vector<std::shared_ptr<Mesh>> parseMeshes(const aiScene *pScene)
+        std::vector<std::unique_ptr<Mesh>> parseMeshes(const aiScene *pScene)
         {
-            std::vector<std::shared_ptr<Mesh>> meshes(pScene->mNumMeshes);
+            std::vector<std::unique_ptr<Mesh>> meshes;
             for (int i = 0; i < pScene->mNumMeshes; ++i)
             {
                 std::cout << "1. Getting MESH ID " << i << "\n";
                 const aiMesh *pmesh = pScene->mMeshes[i];
-                meshes[i] = assimpToMesh(pmesh, pScene);
+                meshes.emplace_back(std::move(assimpToMesh(pmesh, pScene)));
             }
 
             return meshes;
         }
     
-        std::vector<std::shared_ptr<AssimpAnimation>> parseAnimation(const aiScene *pScene, const std::vector<std::shared_ptr<Mesh>> &meshesToBeLoaded)
+        std::vector<std::unique_ptr<AssimpAnimation>> parseAnimation(const aiScene *pScene, const std::vector<std::unique_ptr<Mesh>> &meshesToBeLoaded)
         {
-            std::vector<std::shared_ptr<AssimpAnimation>> animList;
+            std::vector<std::unique_ptr<AssimpAnimation>> animList;
             for(int i = 0; i < pScene->mNumAnimations; ++i)
             {
                 auto pAnim = pScene->mAnimations[i];
-                std::shared_ptr<AssimpAnimation> clip = std::make_shared<AssimpAnimation>(pAnim);
+                std::unique_ptr<AssimpAnimation> clip = std::make_unique<AssimpAnimation>(pAnim);
                 clip->initJointParentMap(pScene->mRootNode);
-                animList.push_back(clip);
+                animList.emplace_back(std::move(clip));
             }
             return animList;
         }
-    }
+    
+        const aiScene* getScene(Assimp::Importer &Importer, const char *filename, bool checkMeshes, bool checkAnimations)
+        {
+            const aiScene *pScene = Importer.ReadFile(filename, ASSIMP_LOAD_FLAGS);
+            
+            if (!pScene)
+            {
+                std::cout << "Error while importing mesh: " << Importer.GetErrorString()
+                          << "\n";
+                return nullptr;
+            }
 
-    void Import::loadMeshesAndAnimations(const char *filename, std::vector<std::shared_ptr<Mesh>> &meshesToBeLoaded, std::shared_ptr<AnimationSystem::Manager> pManager)
+            if (checkMeshes && !pScene->HasMeshes())
+            {
+                std::cout << "Error! File does not have mesh: " << Importer.GetErrorString()
+                          << "\n";
+                return nullptr;
+            }
+            
+            if(checkAnimations && !pScene->HasAnimations())
+            {
+                std::cout << "Animation(s) not found in file: "<<filename<<". [SKIPPING] \n";
+                return nullptr;
+            }
+            
+            return pScene;
+        }
+    }
+    
+    std::vector<std::unique_ptr<AssimpAnimation>> Import::loadAnimations(const char *filename, const std::vector<std::unique_ptr<Mesh>> &meshesToBeLoaded)
     {
         Assimp::Importer Importer;
-        const aiScene *pScene = Importer.ReadFile(filename, ASSIMP_LOAD_FLAGS);
-        // pScene = aiApplyPostProcessing(pScene, aiProcess_FixInfacingNormals | aiProcess_MakeLeftHanded);
-
-        if (!pScene)
+        const aiScene *pScene = getScene(Importer, filename, false, true);
+        if(!pScene)
         {
-            std::cout << "Error while importing mesh: " << Importer.GetErrorString()
-                      << "\n";
-            return;
-        }
-
-        if (!pScene->HasMeshes())
-        {
-            std::cout << "Error! File does not have mesh: " << Importer.GetErrorString()
-                      << "\n";
             return;
         }
         
-        meshesToBeLoaded = parseMeshes(pScene);
-        if(!pScene->HasAnimations())
+        return parseAnimation(pScene, meshesToBeLoaded);
+    }
+
+    std::vector<std::unique_ptr<Mesh>> Import::loadMeshes(const char *filename)
+    {
+        // workaround: if importer is destroyed the data will be destroyed too. so it needs to be stay alive untill a moment.
+        Assimp::Importer Importer;
+        const aiScene *pScene = getScene(Importer, filename, true, false);
+        if(!pScene)
         {
-            std::cout << "Animation(s) not found in file: "<<filename<<". [SKIPPING] \n";
             return;
         }
+        return parseMeshes(pScene);
         
-        auto clips = parseAnimation(pScene, meshesToBeLoaded);
-        pManager->setAssimpAnimations(std::move(clips));
     }
 } // namespace AnimationSystem

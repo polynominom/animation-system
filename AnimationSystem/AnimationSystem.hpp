@@ -22,8 +22,8 @@ namespace AnimationSystem
         MetalRenderer *getRenderer() { return _renderer.get(); }
 
     private:
-        std::shared_ptr<MetalRenderer> _renderer;
-        std::shared_ptr<ResourceManager> _resourceManager;
+        std::unique_ptr<MetalRenderer> _renderer{};
+        std::unique_ptr<ResourceManager> _resourceManager{};
     };
 } // namespace AnimationSystem
 

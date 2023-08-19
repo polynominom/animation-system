@@ -20,8 +20,8 @@ namespace Example
         shaderPath+="/phong_shader.metal";
         std::string locomotionBlendSpecPath = blendSpecificationsPath + "/locomotion.b3";
         
-        _pAnimSystem = new AnimationSystem::AnimationSystem();
-        
+        _pAnimSystem = std::make_unique<AnimationSystem::AnimationSystem>();
+
         // initialize the resources of the animation system
         _pAnimSystem->setCommonShaderPath(shaderPath);
         _pAnimSystem->setCommonCharacterPath(characterPath);
@@ -32,7 +32,7 @@ namespace Example
     }
     CoreTestViewDelegate::~CoreTestViewDelegate()
     {
-        delete this->_pAnimSystem;
+//        delete this->_pAnimSystem;
     }
 
     void CoreTestViewDelegate::drawInMTKView(MTK::View *pView)

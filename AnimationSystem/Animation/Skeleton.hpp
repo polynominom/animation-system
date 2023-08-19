@@ -10,15 +10,15 @@ namespace AnimationSystem
     class Skeleton
     {
     public:
-        Skeleton(){}
+        Skeleton() {}
         [[nodiscard]] const unsigned long jointCount() const { return _joints.size(); }
-        void addJoint(const std::shared_ptr<Joint>& joint){_joints.push_back(joint);}
-        void setJoints(std::vector<std::shared_ptr<Joint>> &&joints){_joints = std::move(joints);}
-        void initJoints(size_t size){_joints.resize(size);}
-        [[nodiscard]] std::shared_ptr<Joint> getJoint(uint i){return _joints[i];}
+        void addJoint(std::unique_ptr<Joint> &joint) { _joints.emplace_back(std::move(joint)); }
+        void setJoints(std::vector<std::unique_ptr<Joint>> &&joints) { _joints = std::move(joints); }
+        void initJoints(size_t size) { _joints.resize(size); }
+        [[nodiscard]] const Joint* getJoint(uint i) { return _joints[i].get(); }
 
     private:
-        std::vector<std::shared_ptr<Joint>> _joints{};
+        std::vector<std::unique_ptr<Joint>> _joints{};
     };
 }
 #endif

@@ -32,7 +32,7 @@ namespace AnimationSystem
         void addIndex(uint16_t index);
         void addSkinnedVertexWeight(size_t vertexId, int jointIndex, float weight);
     
-        void setSkeletonPose(std::shared_ptr<SkeletonPose> pose){_animSkeletonPose = pose;}
+        void setSkeletonPose(std::unique_ptr<SkeletonPose> &&pose){_animSkeletonPose = std::move(pose);}
         [[nodiscard]] SkeletonPose* getSkeletonPose(){return _animSkeletonPose.get();}
         /*
          Applies skinning to the effected vertices. And updates the vertex buffer.
@@ -54,7 +54,7 @@ namespace AnimationSystem
         std::vector<ShaderTypes::VertexData> _vertexData{};
         std::vector<SkinnedVertex> _skinnedVertices{};
         std::vector<uint16_t> _indexData{};
-        std::shared_ptr<SkeletonPose> _animSkeletonPose;
+        std::unique_ptr<SkeletonPose> _animSkeletonPose;
         
         // bounding box points TODO: calculate when building mesh?
         simd::float3 _bbMin;

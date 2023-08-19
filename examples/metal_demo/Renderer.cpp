@@ -103,7 +103,7 @@ namespace AnimationSystem
             }
 
             // Use the tiny math library to apply a 3D transformation to the instance.
-            float4x4 scale = Math::scale((float3){scl, scl, scl});
+            float4x4 scale = Math::scaleM((float3){scl, scl, scl});
             float4x4 zrot = Math::rotateZ(_angle * sinf((float)ix));
             float4x4 yrot = Math::rotateY(_angle * cosf((float)iy));
 
